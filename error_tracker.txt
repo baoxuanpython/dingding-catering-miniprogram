@@ -1,0 +1,302 @@
+[system] WeChatLib: 3.17.5 (2026.10.21 11:45:04)
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 [system] No. of subpackages: 2
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 [system] LazyCodeLoading: true
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 Lazy code loading is enabled. Only injecting required components.
+[基础库] 正在使用灰度中的基础库 3.17.5 进行调试。如有问题，请前往工具栏-详情-本地设置更改基础库版本。
+[skyline] skyline 版本号: 1.4.21, 版本记录: ef3edf6c94265dfe314f9197ff4e100f99aac070
+Thu Oct 22 2026 16:24:36 GMT+0800 (中国标准时间) 配置中关闭合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书检查
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 工具未校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书。
+invoke @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+d @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+ie @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ie @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ce @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+g @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+m @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+ke @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+O @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createRequestTask @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+execute @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+cce @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+k @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ request.ts:29
+request @ request.ts:28
+(anonymous) @ app.ts:41
+(anonymous) @ _ts_generator.js?forceSync=true:1
+(anonymous) @ _ts_generator.js?forceSync=true:1
+asyncGeneratorStep @ _async_to_generator.js?forceSync=true:1
+c @ _async_to_generator.js?forceSync=true:1
+Promise.then (async)
+asyncGeneratorStep @ _async_to_generator.js?forceSync=true:1
+c @ _async_to_generator.js?forceSync=true:1
+(anonymous) @ _async_to_generator.js?forceSync=true:1
+(anonymous) @ _async_to_generator.js?forceSync=true:1
+wxLogin @ app.ts:68
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ app.ts:25
+(anonymous) @ _ts_generator.js?forceSync=true:1
+(anonymous) @ _ts_generator.js?forceSync=true:1
+asyncGeneratorStep @ _async_to_generator.js?forceSync=true:1
+c @ _async_to_generator.js?forceSync=true:1
+(anonymous) @ _async_to_generator.js?forceSync=true:1
+(anonymous) @ _async_to_generator.js?forceSync=true:1
+checkLoginStatus @ app.ts:27
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+onLaunch @ app.ts:15
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+ln @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ app.ts:5
+_ @ WASubContext.js?t=wechat&v=3.17.5:1
+E @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+runWith @ WASubContext.js?t=wechat&v=3.17.5:1
+J @ WASubContext.js?t=wechat&v=3.17.5:1
+await (async)
+(anonymous) @ appservice.app.js:5
+batchLoadJsFiles @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+loadJsFiles @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+O @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+wrapComponentsInjection @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+wrapSubPackagesInjection @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+B @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+l.emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+[skyline wxss warning] Unsupported Property. Style Text: -webkit-mask: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='24' viewBox='0 0 12 24'%3E  %3Cpath fill-opacity='.9' fill-rule='evenodd' d='M10 19.438L8.955 20.5l-7.666-7.79a1.02 1.02 0 0 1 0-1.42L8.955 3.5 10 4.563 2.682 12 10 19.438z'/%3E%3C/svg%3E") no-repeat 50% 50%; (/components/navigation-bar/navigation-bar.wxss:52:16)
+Unsupported Property. Style Text: -webkit-mask-size: cover; (/components/navigation-bar/navigation-bar.wxss:54:315)
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 Error: MiniProgramError
+Cannot find method "_showChange" for observer of property "show".
+    at Z (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at Gt.prepare (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at Wt.prepare (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at Ft (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at WAServiceMainContext.js?t=wechat&v=3.17.5:1
+    at pt.createComponent (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at WAServiceMainContext.js?t=wechat&v=3.17.5:1
+    at pt.createComponent (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at pt.<anonymous> (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at pt.createComponentByDef (WAServiceMainContext.js?t=wechat&v=3.17.5:1)(env: Windows,mp,2.02.2608080; lib: 3.17.5)
+errorReport @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+thirdErrorReport @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+f @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+call @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+N @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Z @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+prepare @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+prepare @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ft @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createComponent @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createComponent @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createComponentByDef @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createComponent @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createCommonElement @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+a @ index.appservice.js:89
+handleChildrenCreation @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+handleChildrenCreationAndInsert @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+create @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+initValues @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_$advancedCreate @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createWithGenericsAndContext @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createComponentByUrl @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+doInitCreation @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+nt @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+addView @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+create @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+Ar @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+l.emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emitInternal @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_ @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+$ @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+o @ VM450:1
+(anonymous) @ VM450:1
+(anonymous) @ VM450:1
+emit @ VM450:1
+(anonymous) @ VM450:1
+i @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ye @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ VM450:1
+subscribeHandler @ VM450:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+E @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+bH @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+await (async)
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Show 32 more frames
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 wx.getSystemInfoSync is deprecated.Please use wx.getSystemSetting/wx.getAppAuthorizeSetting/wx.getDeviceInfo/wx.getWindowInfo/wx.getAppBaseInfo instead.
+beforeExecute @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+k @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WASubContext.js?t=wechat&v=3.17.5:1
+attached @ navigation-bar.ts:28
+f @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+call @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+triggerLifetime @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+e @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+e @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+e @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+checkAndCallAttached @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+pretendAttached @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_attach @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+attachView @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+Ar @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+l.emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emitInternal @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_ @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+$ @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+o @ VM450:1
+(anonymous) @ VM450:1
+(anonymous) @ VM450:1
+emit @ VM450:1
+(anonymous) @ VM450:1
+i @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ye @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ VM450:1
+subscribeHandler @ VM450:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+E @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+bH @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+await (async)
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Show 15 more frames
+Thu Oct 22 2026 16:24:36 GMT+0800 (中国标准时间)
+node:electron/js2c/renderer_init:2 Skyline 渲染模式在 2.29.2 及以上基础库支持。
+当前小程序未设置线上最低基础库版本，在低版本的客户端中，将使用 WebView 渲染模式进行渲染。
+需要保证页面[pages/index/index]同时在两种渲染模式下都能够正常显示;
+ 点此切换渲染模式   不再提示
+(anonymous) @ node:electron/js2c/renderer_init:2
+(anonymous) @ node:electron/js2c/renderer_init:2
+emit @ node:events:518
+onMessage @ node:electron/js2c/renderer_init:2
+WAServiceMainContext.js?t=wechat&v=3.17.5:1 GET http://localhost:8080/user/category/list 401(env: Windows,mp,2.02.2608080; lib: 3.17.5)
+invoke @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+d @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+ie @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ie @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ce @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+g @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+m @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+ke @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+O @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+createRequestTask @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+execute @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+cce @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+k @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ request.ts:29
+request @ request.ts:28
+(anonymous) @ index.ts:20
+(anonymous) @ _ts_generator.js?forceSync=true:1
+(anonymous) @ _ts_generator.js?forceSync=true:1
+asyncGeneratorStep @ _async_to_generator.js?forceSync=true:1
+c @ _async_to_generator.js?forceSync=true:1
+(anonymous) @ _async_to_generator.js?forceSync=true:1
+(anonymous) @ _async_to_generator.js?forceSync=true:1
+loadCategories @ index.ts:33
+onLoad @ index.ts:15
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+s.__callPageLifeTime__ @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+Ar @ WASubContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WASubContext.js?t=wechat&v=3.17.5:1
+l.emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emitInternal @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_ @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+$ @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+o @ VM450:1
+(anonymous) @ VM450:1
+(anonymous) @ VM450:1
+emit @ VM450:1
+(anonymous) @ VM450:1
+i @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Ye @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ VM450:1
+subscribeHandler @ VM450:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+E @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+p @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+bH @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+await (async)
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+(anonymous) @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+_emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+emit @ WAServiceMainContext.js?t=wechat&v=3.17.5:1
+Show 29 more frames
+index.ts:31 加载分类失败: Error: 用户未登录
+    at success (request.ts:49)
+    at Object.success (WASubContext.js?t=wechat&v=3.17.5:1)
+    at Object.success (WASubContext.js?t=wechat&v=3.17.5:1)
+    at forEach.h.<computed> (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at h (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at WAServiceMainContext.js?t=wechat&v=3.17.5:1
+    at u (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at Function.<anonymous> (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at h (WAServiceMainContext.js?t=wechat&v=3.17.5:1)
+    at WAServiceMainContext.js?t=wechat&v=3.17.5:1(env: Windows,mp,2.02.2608080; lib: 3.17.5)

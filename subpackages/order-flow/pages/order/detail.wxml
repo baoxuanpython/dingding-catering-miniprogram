@@ -1,0 +1,57 @@
+<navigation-bar title="订单详情" color="black" background="#FFF"></navigation-bar>
+<view class="container" wx:if="{{order}}">
+  <view class="status-bar">
+    <text class="status-text">{{order.status === 1 ? '待付款' : order.status === 2 ? '待接单' : order.status === 3 ? '已接单' : order.status === 4 ? '派送中' : order.status === 5 ? '已完成' : order.status === 6 ? '已取消' : '已退款'}}</text>
+  </view>
+
+  <view class="address-card">
+    <text class="consignee">{{order.consignee}} {{order.phone}}</text>
+    <text class="address">{{order.address}}</text>
+  </view>
+
+  <view class="order-items">
+    <view class="section-title">订单明细</view>
+    <block wx:for="{{order.orderDetailList}}" wx:key="id">
+      <view class="item">
+        <image src="{{item.image}}" mode="aspectFill" class="item-image"></image>
+        <view class="item-info">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-quantity" wx:if="{{item.dishId}}">×{{item.dishCopies}}</text>
+          <text class="item-quantity" wx:if="{{item.setmealId}}">×{{item.setmealCopies}}</text>
+          <text class="item-price">¥{{item.amount}}</text>
+        </view>
+      </view>
+      
+      <view wx:if="{{item.dishVO && item.dishVO.flavors.length > 0}}" class="flavor-list">
+        <view wx:for="{{item.dishVO.flavors}}" wx:key="id" class="flavor-tag">
+          {{item.flavorName}}：{{item.valueList.split(',')[0]}}
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="order-summary">
+    <view class="row">
+      <text>订单号</text>
+      <text>{{order.number}}</text>
+    </view>
+    <view class="row">
+      <text>下单时间</text>
+      <text>{{order.orderTime}}</text>
+    </view>
+    <view class="row">
+      <text>支付方式</text>
+      <text>{{order.payMethod === 1 ? '微信支付' : '支付宝'}}</text>
+    </view>
+    <view class="row total">
+      <text>实付金额</text>
+      <text>¥{{order.amount}}</text>
+    </view>
+  </view>
+
+  <view class="action-buttons">
+    <button wx:if="{{order.status >= 2 && order.status <= 4}}" bindtap="onReminder" size="mini">催单</button>
+    <button wx:if="{{order.status === 1 || order.status === 2}}" bindtap="onCancel" size="mini" type="warn">取消订单</button>
+    <button wx:if="{{order.status >= 5}}" bindtap="onRepetition" size="mini" type="primary">再来一单</button>
+  </view>
+</view>

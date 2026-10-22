@@ -1,0 +1,55 @@
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+.form {
+  background-color: #ffffff;
+  padding: 20rpx;
+  margin-top: 20rpx;
+}
+.form-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #eeeeee;
+}
+.label {
+  width: 180rpx;
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+.input {
+  flex: 1;
+  font-size: 28rpx;
+  border: none;
+  outline: none;
+}
+.textarea {
+  flex: 1;
+  font-size: 28rpx;
+  min-height: 120rpx;
+  border: none;
+  outline: none;
+}
+.picker-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+.switch-item {
+  justify-content: space-between;
+}
+.save-btn {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100rpx;
+  line-height: 100rpx;
+  background-color: #ff6b35;
+  color: #ffffff;
+  font-size: 32rpx;
+  text-align: center;
+  border-radius: 0;
+}

@@ -1,0 +1,25 @@
+<navigation-bar title="地址管理" color="black" background="#FFF"></navigation-bar>
+<view class="container">
+  <view wx:for="{{addressList}}" wx:key="id" class="address-card" bindtap="onSelect" data-address="{{item}}">
+    <view class="address-info">
+      <view class="header">
+        <text class="consignee">{{item.consignee}}</text>
+        <text class="phone">{{item.phone}}</text>
+        <text class="default-tag" wx:if="{{item.isDefault === 1}}">默认</text>
+      </view>
+      <text class="detail">{{item.provinceName}}{{item.cityName}}{{item.districtName}}{{item.detail}}</text>
+    </view>
+    
+    <view class="actions" catchtap>
+      <text bindtap="onSetDefault" data-id="{{item.id}}" wx:if="{{item.isDefault !== 1}}">设为默认</text>
+      <text bindtap="onTapEdit" data-id="{{item.id}}">编辑</text>
+      <text class="delete" bindtap="onDelete" data-id="{{item.id}}">删除</text>
+    </view>
+  </view>
+
+  <view wx:if="{{addressList.length === 0}}" class="empty">
+    <text>暂无收货地址</text>
+  </view>
+
+  <button class="add-btn" bindtap="onTapAdd">+ 新增地址</button>
+</view>

@@ -1,0 +1,27 @@
+<navigation-bar title="菜品详情" color="black" background="#FFF"></navigation-bar>
+<view class="container">
+  <view wx:if="{{dish}}">
+    <image src="{{dish.image}}" mode="aspectWidthFix" class="dish-image"></image>
+    <view class="dish-info">
+      <text class="dish-name">{{dish.name}}</text>
+      <text class="dish-price">¥{{dish.price}}</text>
+      <text class="dish-desc">{{dish.description}}</text>
+    </view>
+    
+    <view class="flavor-section">
+      <text class="section-title">选择口味</text>
+      <view wx:for="{{selectedFlavors}}" wx:key="name" class="flavor-item">
+        <text>{{item.name}}：{{item.value}}</text>
+      </view>
+    </view>
+    
+    <view class="bottom-bar">
+      <view class="quantity-control">
+        <text class="qty-btn">-</text>
+        <text>{{quantity}}</text>
+        <text class="qty-btn">+</text>
+      </view>
+      <button class="add-cart-btn">加入购物车</button>
+    </view>
+  </view>
+</view>

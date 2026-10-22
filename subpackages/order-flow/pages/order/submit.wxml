@@ -1,0 +1,40 @@
+<navigation-bar title="提交订单" color="black" background="#FFF"></navigation-bar>
+<view class="container">
+  <view class="address-section" bindtap="onTapSelectAddress">
+    <view wx:if="{{address}}">
+      <text class="consignee">{{address.consignee}} {{address.phone}}</text>
+      <text class="address-detail">{{address.provinceName}}{{address.cityName}}{{address.districtName}}{{address.detail}}</text>
+    </view>
+    <view wx:else>
+      <text class="placeholder">请选择收货地址</text>
+    </view>
+    <text class="arrow">></text>
+  </view>
+
+  <view class="cart-items">
+    <view wx:for="{{cartList}}" wx:key="id" class="cart-item">
+      <text>{{item.name}} × {{item.number}}</text>
+      <text>¥{{item.amount * item.number}}</text>
+    </view>
+  </view>
+
+  <view class="form-section">
+    <view class="form-item">
+      <text class="label">备注</text>
+      <input class="input" placeholder="口味、偏好等要求" value="{{remark}}" bindinput="onRemarkInput" />
+    </view>
+  </view>
+
+  <view class="summary">
+    <view class="row">
+      <text>打包费</text>
+      <text>¥{{packAmount}}</text>
+    </view>
+    <view class="row total">
+      <text>合计</text>
+      <text>¥{{totalAmount + packAmount}}</text>
+    </view>
+  </view>
+
+  <button class="submit-btn" bindtap="onSubmitOrder">提交订单</button>
+</view>

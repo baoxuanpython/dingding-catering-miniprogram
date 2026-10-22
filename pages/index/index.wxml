@@ -1,0 +1,36 @@
+<navigation-bar title="叮叮餐饮" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<view class="container">
+  <view class="main-content">
+    <scroll-view class="category-list" scroll-y>
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="id"
+        class="category-item {{currentCategory.id === item.id ? 'active' : ''}}"
+        bindtap="onCategoryTap"
+        data-category="{{item}}"
+      >
+        {{item.name}}
+      </view>
+    </scroll-view>
+    
+    <scroll-view class="product-list" scroll-y>
+      <view class="product-grid">
+        <view wx:for="{{dishList}}" wx:key="id" class="product-card">
+          <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="product-info">
+            <text class="product-name">{{item.name}}</text>
+            <text class="product-price">¥{{item.price}}</text>
+          </view>
+        </view>
+        
+        <view wx:for="{{setmealList}}" wx:key="id" class="product-card">
+          <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="product-info">
+            <text class="product-name">{{item.name}}</text>
+            <text class="product-price">¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

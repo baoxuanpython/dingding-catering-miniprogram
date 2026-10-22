@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/auth/index",
+    "pages/index/index",
+    "pages/cart/index",
+    "pages/order/index",
+    "pages/mine/index"
+  ],
+  "subpackages": [
+    {
+      "root": "subpackages/browse",
+      "name": "browse",
+      "pages": ["pages/dish/detail", "pages/setmeal/detail"]
+    },
+    {
+      "root": "subpackages/order-flow",
+      "name": "orderFlow",
+      "pages": [
+        "pages/order/submit",
+        "pages/order/detail",
+        "pages/address/list",
+        "pages/address/edit",
+        "pages/user/info"
+      ]
+    }
+  ],
+  "window": { "navigationBarTextStyle": "black", "navigationStyle": "custom" },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/cart/index", "text": "购物车" },
+      { "pagePath": "pages/order/index", "text": "订单" },
+      { "pagePath": "pages/mine/index", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "renderer": "skyline",
+  "rendererOptions": {
+    "skyline": {
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true,
+      "disableABTest": true,
+      "sdkVersionBegin": "3.0.0",
+      "sdkVersionEnd": "15.255.255"
+    }
+  },
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
