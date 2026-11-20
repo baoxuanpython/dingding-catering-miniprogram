@@ -1,27 +1,48 @@
-<navigation-bar title="我的" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="我的" back="{{false}}" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <view class="user-header">
-    <image 
-      wx:if="{{userInfo && userInfo.avatar}}" 
-      src="{{userInfo.avatar}}" 
+  <view class="user-header" bindtap="onTapEditProfile" hover-class="hover-fade">
+    <image
+      wx:if="{{userInfo && userInfo.avatar}}"
+      src="{{userInfo.avatar}}"
       class="avatar"
       mode="aspectFill"
     ></image>
-    <view wx:else class="avatar placeholder">👤</view>
-    <text class="nickname">{{userInfo ? (userInfo.name || '未设置昵称') : '未登录'}}</text>
+    <view wx:else class="avatar placeholder">
+      <image class="avatar-icon" src="/assets/icons/avatar.png" mode="aspectFit" />
+    </view>
+
+    <view class="user-meta">
+      <text class="nickname">{{userInfo ? (userInfo.name || '未设置昵称') : '加载中'}}</text>
+      <text class="user-hint">点击查看个人信息</text>
+    </view>
+
+    <text class="arrow">></text>
   </view>
-  
+
+  <view wx:if="{{needProfile}}" class="profile-tip" bindtap="onTapEditProfile" hover-class="hover-fade">
+    <text class="profile-tip-text">完善资料，下单时可自动填充信息</text>
+    <text class="profile-tip-action">去完善 ></text>
+  </view>
+
+  <view class="menu-list order-entry" bindtap="onTapOrders" hover-class="hover-fade">
+    <view class="menu-item">
+      <text>我的订单</text>
+      <text class="arrow">></text>
+    </view>
+  </view>
+
   <view class="menu-list">
-    <view class="menu-item" bindtap="onTapEditProfile">
+    <view class="menu-item" bindtap="onTapEditProfile" hover-class="hover-fade">
       <text>个人信息</text>
       <text class="arrow">></text>
     </view>
-    <view class="menu-item" bindtap="onTapAddress">
+    <view class="menu-item" bindtap="onTapAddress" hover-class="hover-fade">
       <text>地址管理</text>
       <text class="arrow">></text>
     </view>
-    <view class="menu-item logout" bindtap="onTapLogout">
-      <text>退出登录</text>
-    </view>
+  </view>
+
+  <view class="logout-card" bindtap="onTapLogout" hover-class="hover-fade">
+    <text>退出登录</text>
   </view>
 </view>

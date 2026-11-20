@@ -6,14 +6,23 @@ interface IApp {
     token: string;
     userInfo: User | null;
   };
+  requireLogin(): boolean;
+  logout(): void;
+  fetchUserInfo(): Promise<void>;
+  isProfileIncomplete(): boolean;
 }
 
 Page({
   data: {
     userInfo: null as User | null,
+    needProfile: false,
   },
 
   onShow() {
+    const app = getApp<IApp>();
+    if (!app.requireLogin()) {
+      return;
+    }
     this.loadUserInfo();
   },
 
@@ -21,8 +30,29 @@ Page({
     const app = getApp<IApp>();
 
     if (app.globalData.userInfo) {
-      this.setData({ userInfo: app.globalData.userInfo });
+      this.applyUserInfo(app.globalData.userInfo);
     }
+
+    // 昵称/头像可能在其它端被修改，静默拉一次保证展示的是最新值
+    try {
+      await app.fetchUserInfo();
+      this.applyUserInfo(app.globalData.userInfo);
+    } catch (err) {
+      console.error("刷新用户信息失败:", err);
+    }
+  },
+
+  applyUserInfo(userInfo: User | null) {
+    const app = getApp<IApp>();
+
+    this.setData({
+      userInfo,
+      needProfile: app.isProfileIncomplete(),
+    });
+  },
+
+  onTapOrders() {
+    wx.switchTab({ url: "/pages/order/index" });
   },
 
   onTapEditProfile() {
@@ -47,16 +77,17 @@ Page({
 
   async doLogout() {
     try {
-      await request({ url: "/user/user/logout", method: "POST" });
+      // 跳过 401 自动重登：token 已过期时不应把用户又登回去
+      await request({
+        url: "/user/user/logout",
+        method: "POST",
+        skipAuthRetry: true,
+      });
     } catch {
       // 退出 API 失败不阻塞，继续清除本地数据
     }
 
-    wx.removeStorageSync("token");
-    wx.removeStorageSync("userInfo");
     const app = getApp<IApp>();
-    app.globalData.token = "";
-    app.globalData.userInfo = null;
-    wx.reLaunch({ url: "/pages/index/index" });
+    app.logout();
   },
 });

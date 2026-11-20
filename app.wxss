@@ -1,10 +1,48 @@
-/**app.wxss**/
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 200rpx 0;
-  box-sizing: border-box;
-} 
+/**
+ * 全局样式：设计 token 层
+ *
+ * 色值对齐管理端「清新薄荷风」浅色主题（theme-light.css）。
+ * 所有 token 在使用处都带字面量回退值，原因有两点：
+ * 1. Skyline 渲染器下 page 级变量能否跨页面/组件继承尚未实测；
+ * 2. 微信全局样式不作用于自定义组件（product-popup / setmeal-popup）。
+ * 带回退值可保证即使继承失效，页面仍渲染出正确颜色。
+ */
+page {
+  /* 主色 — 薄荷绿 */
+  --color-primary: #4caf50;
+  --color-primary-light: #81c784;
+  --color-primary-lighter: #a5d6a7;
+  --color-primary-dark: #388e3c;
+  --color-primary-darker: #2e7d32;
+  --color-primary-bg: #e8f5e9;
+
+  /* 背景 */
+  --color-bg-page: #f0f7f4;
+  --color-bg-card: #ffffff;
+  --color-bg-disabled: #e0e0e0;
+
+  /* 文字（绿调中性色） */
+  --color-text-primary: #1a3a2a;
+  --color-text-secondary: #6b8f71;
+  --color-text-disabled: #bdbdbd;
+
+  /* 边框与分割线 */
+  --color-border: #c8e6c9;
+  --color-border-light: #e8f5e9;
+
+  /* 语义色 */
+  --color-danger: #f44336;
+  --color-danger-dark: #d32f2f;
+  --color-info: #2196f3;
+  --color-success: #43a047;
+
+  /* 价格：独立 token，便于单独调整而不影响状态色 */
+  --color-price: #d32f2f;
+  /* 待付款：需用户行动，用警示红 */
+  --color-status-pending: #f44336;
+
+  /* 遮罩与阴影 */
+  --color-mask: rgba(0, 0, 0, 0.55);
+  --color-shadow-light: 0 2px 12px rgba(76, 175, 80, 0.08);
+  --color-shadow-bar: 0 -2px 12px rgba(76, 175, 80, 0.08);
+}

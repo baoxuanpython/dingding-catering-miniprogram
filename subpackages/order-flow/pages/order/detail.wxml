@@ -1,36 +1,82 @@
-<navigation-bar title="订单详情" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="订单详情" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container" wx:if="{{order}}">
-  <view class="status-bar">
-    <text class="status-text">{{order.status === 1 ? '待付款' : order.status === 2 ? '待接单' : order.status === 3 ? '已接单' : order.status === 4 ? '派送中' : order.status === 5 ? '已完成' : order.status === 6 ? '已取消' : '已退款'}}</text>
+  <view class="status-card status-{{order.status}}">
+    <text class="status-text">{{order.statusText}}</text>
+    <text wx:if="{{order.statusSubText}}" class="status-sub-text">{{order.statusSubText}}</text>
   </view>
 
-  <view class="address-card">
+  <view class="card">
     <text class="consignee">{{order.consignee}} {{order.phone}}</text>
     <text class="address">{{order.address}}</text>
   </view>
 
-  <view class="order-items">
-    <view class="section-title">订单明细</view>
-    <block wx:for="{{order.orderDetailList}}" wx:key="id">
-      <view class="item">
-        <image src="{{item.image}}" mode="aspectFill" class="item-image"></image>
-        <view class="item-info">
-          <text class="item-name">{{item.name}}</text>
-          <text class="item-quantity" wx:if="{{item.dishId}}">×{{item.dishCopies}}</text>
-          <text class="item-quantity" wx:if="{{item.setmealId}}">×{{item.setmealCopies}}</text>
-          <text class="item-price">¥{{item.amount}}</text>
-        </view>
-      </view>
-      
-      <view wx:if="{{item.dishVO && item.dishVO.flavors.length > 0}}" class="flavor-list">
-        <view wx:for="{{item.dishVO.flavors}}" wx:key="id" class="flavor-tag">
-          {{item.flavorName}}：{{item.valueList.split(',')[0]}}
-        </view>
-      </view>
-    </block>
+  <view wx:if="{{order.showCancelCard}}" class="card cancel-card">
+    <view class="card-title">取消原因</view>
+    <text class="cancel-reason">{{order.cancelReasonText}}</text>
+    <text wx:if="{{order.cancelTimeText}}" class="cancel-time">取消时间 {{order.cancelTimeText}}</text>
   </view>
 
-  <view class="order-summary">
+  <view class="card">
+    <view class="card-title">订单明细</view>
+    <view wx:for="{{order.itemList}}" wx:key="key" class="item">
+      <image src="{{item.image}}" mode="aspectFill" class="item-image"></image>
+      <view class="item-info">
+        <view class="item-head">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-price">¥{{item.priceText}}</text>
+        </view>
+        <view class="item-meta">
+          <text wx:if="{{item.isSetmeal}}" class="item-tag">套餐</text>
+          <text class="item-quantity">×{{item.copies}}</text>
+        </view>
+        <view wx:if="{{item.subDishes.length > 0}}" class="sub-dishes">
+          <text wx:for="{{item.subDishes}}" wx:for-item="dish" wx:key="*this" class="sub-dish">{{dish}}</text>
+        </view>
+        <view wx:if="{{item.flavors.length > 0}}" class="flavor-list">
+          <text wx:for="{{item.flavors}}" wx:for-item="flavor" wx:key="*this" class="flavor-tag">{{flavor}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">配送信息</view>
+    <view class="row">
+      <text>配送方式</text>
+      <text>{{order.deliveryText}}</text>
+    </view>
+    <view wx:if="{{order.showDeliveryTime}}" class="row">
+      <text>{{order.deliveryTimeLabel}}</text>
+      <text>{{order.deliveryTimeText}}</text>
+    </view>
+    <view class="row">
+      <text>餐具</text>
+      <text>{{order.tablewareText}}</text>
+    </view>
+    <view wx:if="{{order.showRemark}}" class="row">
+      <text>备注</text>
+      <text class="remark-text">{{order.remark}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">金额明细</view>
+    <view class="row">
+      <text>商品金额</text>
+      <text>¥{{order.goodsAmountText}}</text>
+    </view>
+    <view wx:if="{{order.showPackAmount}}" class="row">
+      <text>打包费</text>
+      <text>¥{{order.packAmountText}}</text>
+    </view>
+    <view class="row total">
+      <text>{{order.amountLabel}}</text>
+      <text>¥{{order.amountText}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">订单信息</view>
     <view class="row">
       <text>订单号</text>
       <text>{{order.number}}</text>
@@ -43,15 +89,16 @@
       <text>支付方式</text>
       <text>{{order.payMethod === 1 ? '微信支付' : '支付宝'}}</text>
     </view>
-    <view class="row total">
-      <text>实付金额</text>
-      <text>¥{{order.amount}}</text>
+    <view wx:if="{{order.showCheckoutTime}}" class="row">
+      <text>支付时间</text>
+      <text>{{order.checkoutTime}}</text>
     </view>
   </view>
+</view>
 
-  <view class="action-buttons">
-    <button wx:if="{{order.status >= 2 && order.status <= 4}}" bindtap="onReminder" size="mini">催单</button>
-    <button wx:if="{{order.status === 1 || order.status === 2}}" bindtap="onCancel" size="mini" type="warn">取消订单</button>
-    <button wx:if="{{order.status >= 5}}" bindtap="onRepetition" size="mini" type="primary">再来一单</button>
-  </view>
+<view wx:if="{{order && order.status !== 6 && order.status !== 7}}" class="action-bar">
+  <view wx:if="{{order.status === 1}}" class="action-btn primary" bindtap="onPay">去支付</view>
+  <view wx:if="{{order.status >= 2 && order.status <= 4}}" class="action-btn" bindtap="onReminder">催单</view>
+  <view wx:if="{{order.status === 1 || order.status === 2}}" class="action-btn danger" bindtap="onCancel">取消订单</view>
+  <view wx:if="{{order.status >= 5}}" class="action-btn primary" bindtap="onRepetition">再来一单</view>
 </view>

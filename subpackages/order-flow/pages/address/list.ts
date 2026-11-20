@@ -9,9 +9,9 @@ Page({
 
   onLoad(options: Record<string, string | undefined>) {
     this.setData({ selectMode: options.selectMode === "1" });
-    this.loadAddressList();
   },
 
+  // onShow 已覆盖「首次进入」与「编辑后返回」两种场景，onLoad 不再重复请求
   onShow() {
     this.loadAddressList();
   },
@@ -68,7 +68,7 @@ Page({
             await request<string>({
               url: "/user/addressBook",
               method: "DELETE",
-              data: { id },
+              params: { id },
               showLoading: true,
             });
             wx.showToast({ title: "删除成功", icon: "success" });

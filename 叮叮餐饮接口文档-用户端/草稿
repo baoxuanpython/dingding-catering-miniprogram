@@ -1,0 +1,99 @@
+
+21:57
+我先说三个已核实的事实（这些不用你回答）：
+
+代码不在当前工作区。你截图的是顾客端小程序，代码在另一个仓库：f:\document\GitHub\dingding-catering-miniprogram，具体在 submit.ts。当前工作区只有商家端 Vue 项目，所以这次要改的是小程序那边。⚠️ 注意：那个目录在当前工作区根目录之外，我的写文件权限可能被限制，届时可能需要你把小程序项目作为工作区打开，或者我直接给你完整替换代码。
+
+当前流程是：onSubmitOrder → POST /user/order/submit → clearCart() → confirmPay(order)（弹窗）→ 点「立即支付」才走 handlePayment → PUT /user/order/payment → 跳详情页；点「稍后支付」直接跳详情页。
+
+两个关键现状（会影响下面第 1 题）：
+
+支付接口是后端模拟支付（PUT /user/order/payment），没有 wx.requestPayment 真实唤起微信收银台。
+订单详情页 detail.ts 没有「去支付」按钮（只有订单列表页 index.ts:L185 调了 payOrder）。也就是说支付失败后如果跳详情页，用户在那个页面没法补支付。
+第一轮 5 个问题：
+
+❓ Q1 - 支付失败后跳哪里
+
+这是最关键的一题，因为详情页没有支付入口，跳过去等于死路。
+
+A. 保持现状：单按钮弹窗「支付失败，可稍后在订单列表继续支付」→ 跳详情页（文案与去向不一致）
+B. 弹窗提示后跳订单列表（待付款 tab），用户可在列表点「去支付」补付
+C. 不弹窗，只 toast，然后跳详情页（信息量最少）
+➡️ 选 B。你要求的「简洁有效」应该体现在「少一次点击」，但不能以「用户无路可走」为代价。失败提示仍然要保留（支付失败是必须告知的状态），但落点必须落在唯一能补支付的地方——待付款订单列表。
+
+❓ Q2 - 支付成功后跳哪里
+
+A. 保持现状：toast「支付成功」→ 跳详情页
+B. 跳订单列表（已接单 tab）
+C. 跳详情页但不 toast
+➡️ 选 A。详情页能立刻看到「待接单」状态和订单号，是"我刚买了什么"最自然的落点；toast 是唯一的成功反馈，不能省。
+
+❓ Q3 - 防重复提交与 loading 的收口方式
+
+现状有个小隐患：onSubmitOrder 在调用支付之前就把 submitting 置回 false（submit.ts:L323），于是支付请求进行中按钮又变回可点的「提交订单」，理论上能二次下单。
+
+A. 让 submitting 从提交开始一直保持 true，直到跳转成功；只在异常分支才置回 false（按钮全程显示「提交中...」）
+B. 支付阶段单独加一个 paying 标记
+C. 不管，靠 showLoading 的 mask 挡住
+➡️ 选 A。引入第二个状态标记（B）会让按钮文案和禁用逻辑变成两个布尔量的组合，违反"简洁"；而 C 的 mask 在 wx.hideLoading() 与弹窗之间有空窗期，不可靠。一个 submitting 贯穿全程，语义就是"这单正在处理中"，最干净。
+
+❓ Q4 - confirmPay 函数怎么处置
+
+A. 整个删掉，onSubmitOrder 里直接调 handlePayment(order)
+B. 保留函数名但改成 handlePayment 的包装（无实际意义）
+C. 删掉弹窗但保留一个 wx.showToast 展示订单号/金额
+➡️ 选 A。这个函数的唯一职责就是那个弹窗，弹窗没了函数就该消失；C 会造成"toast 与跳转抢屏"，而且订单号和金额在详情页本来就有。
+
+❓ Q5 - 底部按钮文案要不要改
+
+现在按钮是「提交订单」，改完之后它实际上会连带扣款。
+
+A. 保持「提交订单」
+B. 改为「提交并支付」
+➡️ 选 B。这是唯一一个必须让用户预期发生变化的地方：以前点「提交订单」只建单不扣钱，现在点下去会直接支付。不改文案等于偷偷改了行为，容易引发客诉。改 4 个字，成本极低。
+
+这 5 题答完，我会再确认最后一轮（主要围绕 handlePayment 内部异常分支的文案细节，以及是否需要把失败弹窗的「确定」换成「去支付」这类措辞）。确认后我再动手改，并且会先验证能否写入那个目录。
+
+都按推荐的来
+22:00
+我先把两个影响结论的新事实补齐（这些不用你答）：
+
+订单列表是 tabBar 页（app.json 里 pages/order/index 在 tabBar.list 中），所以"跳订单列表"只能用 wx.switchTab，不能用 redirectTo/navigateTo——用错会静默失败。
+列表默认停在「全部」tab，且 onShow 检测到 orderListDirty 会重置刷新（submit 页提交后已置了这个脏标记），所以跳过去能立刻看到新订单；待付款卡片上本来就有「去支付」按钮，见 index.wxml:L42。Q1 选的落点是可行的。
+⚠️ 权限事实：小程序仓库 f:\document\GitHub\dingding-catering-miniprogram 在当前工作区之外，我实测无法写入（工具直接报"找不到待替换字符串"，而同一字符串 grep 能命中）。所以最后必须走 Q9 的交付方式。
+最后一轮 4 个问题：
+
+❓ Q6 - 支付失败提示的形态与措辞
+
+A. wx.showModal 单按钮，confirmText: "去支付"，点确定 switchTab 到订单列表
+B. wx.showModal 单按钮，confirmText: "知道了"，点确定 switchTab 到订单列表
+C. 只 wx.showToast 提示，然后 switchTab 到订单列表
+➡️ 选 A。既然落点就是「有去支付按钮的列表页」，按钮文案叫「去支付」能让用户预期和落点完全对齐（点了确实能去支付，只是要先切到待付款 tab）；而「知道了」是纯确认语气，用户点完会被"甩"到列表还得自己找按钮。C 的问题在于 toast 只有 1.5 秒，支付失败这种必须让用户知道结果的事，用 toast 太轻。
+
+❓ Q7 - 支付请求：复用 payOrder 还是保留内联 request
+
+事实：utils/order.ts:L68-L85 已经有一个 payOrder(orderNumber, payMethod)，内部调同一个 PUT /user/order/payment、带 loading、成功后 toast「支付成功」、失败返回 false。而 submit.ts:L341-L360 的 handlePayment 是同一段逻辑的第二份拷贝。
+
+A. 复用 payOrder，删掉 submit 页里内联的 request
+B. 保留内联，避免 submit 页依赖 utils 的 toast 文案
+➡️ 选 A。你要的"简洁有效"，最大的一块冗余就在这里：同一接口两个实现，将来改支付参数必然漏改一处。复用它之后 handlePayment 只剩"调用 + 分支处理"，payMethod 也正好是 submit 页自己持有的状态。唯一代价是「支付成功」toast 的文案由 utils 决定——但那个文案本来就是全站统一的，不构成问题。
+
+❓ Q8 - 失败后 submitting 的复位时机
+
+选 A（Q3）后，submitting 要贯穿"提交 + 支付"全程。那么支付失败、即将 switchTab 离开时：
+
+A. 在 catch 分支里显式复位 submitting: false，再弹窗跳转
+B. 不复位，反正要离开这个页面了
+C. 用 finally 复位
+➡️ 选 A。B 是最诱人的"少一行"，但它是脆弱的：wx.switchTab 的 fail 回调可能因为任何原因（比如当前页就是列表页、或基础库异常）不生效，一旦没跳成功，用户就永远面对一个灰掉的「提交中...」按钮，只能杀进程。C 用 finally 复位则会把成功路径也复位掉——成功跳转前那一瞬按钮会重新变亮，理论上又能被点到。所以只在失败分支复位，最精确。
+
+❓ Q9 - 交付方式（因为跨工作区写不了）
+
+A. 你把 dingding-catering-miniprogram 目录（或它的父目录）作为工作区重新打开，我直接改
+B. 我在对话里给出 submit.ts 的完整替换内容 + submit.wxml 改一个字，你自己粘贴
+C. 我只给「改动片段」的 diff，你手动定位粘贴
+➡️ 选 B。submit.ts 这次改动集中在 onSubmitOrder / confirmPay / handlePayment 三个方法（约 70 行），给完整文件反而更大、更容易粘贴出错；给"这三个方法的完整替换块"最稳：你只需整块覆盖，不用逐行对齐。A 虽然最省事，但要重启工作区、且会把商家端项目踢出上下文，来回成本高。
+
+这 4 题答完（尤其 Q9）设计树就清空，我会立刻输出可粘贴的代码块。
+
+都按照推荐的来

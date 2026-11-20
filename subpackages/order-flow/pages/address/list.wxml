@@ -1,4 +1,4 @@
-<navigation-bar title="地址管理" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="地址管理" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
   <view wx:for="{{addressList}}" wx:key="id" class="address-card" bindtap="onSelect" data-address="{{item}}">
     <view class="address-info">
@@ -21,5 +21,5 @@
     <text>暂无收货地址</text>
   </view>
 
-  <button class="add-btn" bindtap="onTapAdd">+ 新增地址</button>
+  <view class="add-btn" bindtap="onTapAdd">+ 新增地址</view>
 </view>

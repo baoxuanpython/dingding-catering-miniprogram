@@ -1,6 +1,6 @@
-<navigation-bar title="我的订单" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="我的订单" back="{{false}}" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <scroll-view scroll-x class="status-tabs">
+  <scroll-view scroll-x class="status-tabs" enhanced bounces>
     <view 
       wx:for="{{statusOptions}}" 
       wx:key="value"
@@ -12,21 +12,52 @@
     </view>
   </scroll-view>
   
-  <scroll-view scroll-y class="order-list">
-    <view wx:for="{{orderList}}" wx:key="id" class="order-card" bindtap="onOrderTap" data-id="{{item.id}}">
-      <view class="order-header">
-        <text class="order-number">订单号：{{item.number}}</text>
-        <text class="order-status">{{item.status === 1 ? '待付款' : item.status === 2 ? '待接单' : item.status === 3 ? '已接单' : item.status === 4 ? '派送中' : item.status === 5 ? '已完成' : item.status === 6 ? '已取消' : '已退款'}}</text>
+  <scroll-view
+    scroll-y
+    class="order-list"
+    enhanced
+    bounces
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    refresher-background="#f0f7f4"
+    lower-threshold="80"
+    bindrefresherrefresh="onRefresh"
+    bindscrolltolower="onLoadMore"
+  >
+    <view wx:if="{{firstLoading}}" class="page-loading">加载中...</view>
+
+    <block wx:else>
+      <view wx:for="{{orderList}}" wx:key="id" class="order-card" bindtap="onOrderTap" data-id="{{item.id}}">
+        <view class="order-header">
+          <text class="order-number">订单号：{{item.number}}</text>
+          <text class="order-status status-{{item.status}}">{{item.statusText}}</text>
+        </view>
+        <view class="order-dishes">{{item.dishesText}}</view>
+        <view class="order-footer">
+          <text class="order-time">{{item.orderTime}}</text>
+          <text class="order-amount">¥{{item.amount}}</text>
+        </view>
+
+        <view wx:if="{{item.status <= 4}}" class="order-actions" catchtap="noop">
+          <view wx:if="{{item.status === 1}}" class="action-btn primary" catchtap="onPayTap" data-id="{{item.id}}">去支付</view>
+          <view wx:if="{{item.status === 2 || (item.status >= 3 && item.status <= 4)}}" class="action-btn" catchtap="onReminderTap" data-id="{{item.id}}">催单</view>
+          <view wx:if="{{item.status === 1 || item.status === 2}}" class="action-btn" catchtap="onCancelTap" data-id="{{item.id}}">取消订单</view>
+        </view>
+
+        <view wx:if="{{item.status >= 5}}" class="order-actions" catchtap="noop">
+          <view class="action-btn primary" catchtap="onRepeatTap" data-id="{{item.id}}">再来一单</view>
+        </view>
       </view>
-      <view class="order-dishes">{{item.orderDishes}}</view>
-      <view class="order-footer">
-        <text class="order-time">{{item.orderTime}}</text>
-        <text class="order-amount">¥{{item.amount}}</text>
+
+      <view wx:if="{{orderList.length === 0}}" class="empty-orders">
+        <text class="empty-text">{{emptyText}}</text>
+        <view class="empty-btn" bindtap="onGoShopping">去逛逛</view>
       </view>
-    </view>
-    
-    <view wx:if="{{orderList.length === 0}}" class="empty-orders">
-      <text>暂无订单</text>
-    </view>
+
+      <view wx:if="{{orderList.length > 0}}" class="list-end-tip">
+        <text wx:if="{{loadingMore}}">加载中...</text>
+        <text wx:elif="{{!hasMore}}">没有更多了</text>
+      </view>
+    </block>
   </scroll-view>
 </view>

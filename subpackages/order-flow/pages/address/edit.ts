@@ -15,12 +15,10 @@ Page({
       detail: "",
       label: "",
       isDefault: 0,
-    } as AddressBookDTO & {
-      provinceCode?: string;
-      cityCode?: string;
-      districtCode?: string;
-    },
+    } as AddressBookDTO,
     region: [] as string[],
+    // WXML 表达式不支持方法调用（如 region.join），只能由 TS 预先拼好
+    regionText: "请选择省/市/区",
   },
 
   onLoad(options: Record<string, string | undefined>) {
@@ -43,6 +41,9 @@ Page({
           ...data,
         },
         region: [data.provinceName, data.cityName, data.districtName],
+        regionText: [data.provinceName, data.cityName, data.districtName]
+          .filter((item) => item)
+          .join(" "),
       });
     } catch (err) {
       console.error("加载地址详情失败:", err);
@@ -55,6 +56,9 @@ Page({
 
     this.setData({
       region: e.detail.value as string[],
+      regionText: [provinceName, cityName, districtName]
+        .filter((item) => item)
+        .join(" "),
       "form.provinceName": provinceName,
       "form.cityName": cityName,
       "form.districtName": districtName,
@@ -64,8 +68,23 @@ Page({
     });
   },
 
-  onInput(e: WechatMiniprogram.Input, field: keyof AddressBookDTO) {
+  // WXML 事件绑定只能写方法名，参数通过 data-field 传入
+  onInput(e: WechatMiniprogram.Input) {
+    const field = e.currentTarget.dataset.field as keyof AddressBookDTO;
+
+    if (!field) {
+      return;
+    }
+
     this.setData({ [`form.${field}`]: e.detail.value });
+  },
+
+  onRadioChange(e: WechatMiniprogram.RadioGroupChange) {
+    this.setData({ "form.sex": e.detail.value });
+  },
+
+  onSwitchChange(e: WechatMiniprogram.SwitchChange) {
+    this.setData({ "form.isDefault": e.detail.value ? 1 : 0 });
   },
 
   validateForm(): boolean {
@@ -94,12 +113,16 @@ Page({
   async onSave() {
     if (!this.validateForm()) return;
 
+    // 新增时 id 无业务语义，带着 id:0 提交等于赌后端宽容，这里显式剔除
+    const { id, ...rest } = this.data.form;
+    const payload: AddressBookDTO = this.data.isEdit ? { ...rest, id } : rest;
+
     try {
       const method = this.data.isEdit ? "PUT" : "POST";
       await request<AddressBook>({
         url: "/user/addressBook",
         method,
-        data: this.data.form,
+        data: payload,
         showLoading: true,
       });
 

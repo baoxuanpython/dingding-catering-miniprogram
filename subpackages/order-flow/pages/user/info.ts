@@ -39,6 +39,12 @@ Page({
 
   onChooseAvatar(e: WechatMiniprogram.CustomEvent) {
     const { avatarUrl } = e.detail;
+
+    // 用户取消选择时 avatarUrl 为空，直接返回避免无谓上传
+    if (!avatarUrl) {
+      return;
+    }
+
     this.uploadAvatar(avatarUrl);
   },
 
@@ -56,8 +62,19 @@ Page({
     this.setData({ "form.name": e.detail.value });
   },
 
-  onInput(e: WechatMiniprogram.Input, field: keyof UserEditDTO) {
+  // WXML 事件绑定只能写方法名，参数通过 data-field 传入
+  onInput(e: WechatMiniprogram.Input) {
+    const field = e.currentTarget.dataset.field as keyof UserEditDTO;
+
+    if (!field) {
+      return;
+    }
+
     this.setData({ [`form.${field}`]: e.detail.value });
+  },
+
+  onRadioChange(e: WechatMiniprogram.RadioGroupChange) {
+    this.setData({ "form.sex": e.detail.value });
   },
 
   async onSave() {

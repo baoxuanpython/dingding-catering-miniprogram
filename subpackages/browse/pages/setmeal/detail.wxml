@@ -1,7 +1,7 @@
-<navigation-bar title="套餐详情" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="套餐详情" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
   <view wx:if="{{setmeal}}">
-    <image src="{{setmeal.image}}" mode="aspectWidthFix" class="setmeal-image"></image>
+    <image src="{{setmeal.image}}" mode="widthFix" class="setmeal-image"></image>
     <view class="setmeal-info">
       <text class="setmeal-name">{{setmeal.name}}</text>
       <text class="setmeal-price">¥{{setmeal.price}}</text>
@@ -10,21 +10,45 @@
     
     <view class="dishes-section">
       <text class="section-title">套餐包含</text>
-      <view wx:for="{{setmeal.setmealDishes}}" wx:key="id" class="dish-item">
-        <text class="dish-name">{{item.name}} × {{item.copies}}</text>
-        <view wx:for="{{item.setmealDishFlavors}}" wx:key="id" class="flavor-tag">
-          {{item.flavorName}}：{{item.flavorValue}}
+
+      <view wx:if="{{dishesLoading}}" class="dishes-loading">套餐内容加载中...</view>
+
+      <view wx:for="{{dishItems}}" wx:for-index="di" wx:key="dishId" class="dish-item">
+        <view class="dish-head">
+          <text class="dish-name">{{item.dishName}}</text>
+          <text class="dish-copies">× {{item.copies}}</text>
         </view>
+
+        <view wx:for="{{item.groups}}" wx:for-item="group" wx:for-index="gi" wx:key="flavorId" class="flavor-group">
+          <text class="flavor-name">{{group.name}}</text>
+          <view class="flavor-values">
+            <view
+              wx:for="{{group.values}}"
+              wx:for-item="value"
+              wx:for-index="vi"
+              wx:key="*this"
+              class="flavor-chip {{vi === group.selectedIndex ? 'active' : ''}}"
+              catchtap="onSelectFlavor"
+              data-di="{{di}}"
+              data-fid="{{group.flavorId}}"
+              data-vi="{{vi}}"
+            >{{value}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{!dishesLoading && dishItems.length === 0}}" class="dishes-empty">
+        该套餐内菜品暂无可选口味
       </view>
     </view>
     
     <view class="bottom-bar">
       <view class="quantity-control">
-        <text class="qty-btn">-</text>
-        <text>{{quantity}}</text>
-        <text class="qty-btn">+</text>
+        <view class="qty-btn {{quantity <= 1 ? 'disabled' : ''}}" bindtap="onMinus">-</view>
+        <text class="qty-value">{{quantity}}</text>
+        <view class="qty-btn" bindtap="onPlus">+</view>
       </view>
-      <button class="add-cart-btn">加入购物车</button>
+      <view class="add-cart-btn {{adding ? 'disabled' : ''}}" bindtap="onAddToCart">加入购物车</view>
     </view>
   </view>
 </view>

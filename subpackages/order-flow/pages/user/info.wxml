@@ -1,4 +1,4 @@
-<navigation-bar title="个人信息" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="个人信息" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
   <view class="avatar-section">
     <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
@@ -33,14 +33,15 @@
         class="input" 
         placeholder="请输入手机号" 
         value="{{form.phone}}" 
-        bindinput="{{onInput}}('phone')" 
+        bindinput="onInput" 
+        data-field="phone" 
         maxlength="11" 
       />
     </view>
 
     <view class="form-item">
       <text class="label">性别</text>
-      <radio-group bindchange="{{onRadioChange}}">
+      <radio-group bindchange="onRadioChange">
         <label><radio value="男" checked="{{form.sex === '男'}}" /> 男</label>
         <label><radio value="女" checked="{{form.sex === '女'}}" /> 女</label>
       </radio-group>
@@ -52,7 +53,8 @@
         class="input" 
         placeholder="请输入身份证号（选填）" 
         value="{{form.idNumber}}" 
-        bindinput="{{onInput}}('idNumber')" 
+        bindinput="onInput" 
+        data-field="idNumber" 
         maxlength="18" 
       />
     </view>

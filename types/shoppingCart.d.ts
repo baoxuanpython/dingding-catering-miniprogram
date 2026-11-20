@@ -1,8 +1,15 @@
+export interface SetmealFlavorDTO {
+  dishId: number;
+  flavorId: number[];
+  flavorVal: string[];
+}
+
 export interface ShoppingCartDTO {
   dishId?: number;
   setmealId?: number;
   flavorId?: number[];
   flavorVal?: string[];
+  setmealFlavors?: SetmealFlavorDTO[];
 }
 
 export interface ShoppingCart {

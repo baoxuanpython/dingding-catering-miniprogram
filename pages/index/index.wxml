@@ -1,36 +1,120 @@
-<navigation-bar title="叮叮餐饮" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="叮叮餐饮" back="{{false}}" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
+  <view class="shop-bar">
+    <view class="shop-main">
+      <text class="shop-name">叮叮餐饮</text>
+      <view class="shop-status {{shopOpen ? 'open' : 'closed'}}">
+        <text>{{shopStatusText}}</text>
+      </view>
+    </view>
+    <text class="shop-sub">现点现做 · 美味即达</text>
+  </view>
+
+  <view class="search-bar">
+    <view class="search-box">
+      <image class="search-icon" src="/assets/icons/search.png" mode="aspectFit" />
+      <input
+        class="search-input"
+        value="{{keyword}}"
+        placeholder="搜索本分类商品"
+        placeholder-style="color:#bdbdbd"
+        confirm-type="search"
+        bindinput="onKeywordInput"
+      />
+      <text wx:if="{{keyword}}" class="search-clear" bindtap="onClearKeyword">✕</text>
+    </view>
+  </view>
+
   <view class="main-content">
-    <scroll-view class="category-list" scroll-y>
-      <view 
-        wx:for="{{categories}}" 
+    <scroll-view class="category-list" scroll-y enhanced bounces>
+      <view
+        wx:for="{{categories}}"
         wx:key="id"
-        class="category-item {{currentCategory.id === item.id ? 'active' : ''}}"
+        class="category-item {{currentCategory && currentCategory.id === item.id ? 'active' : ''}}"
         bindtap="onCategoryTap"
-        data-category="{{item}}"
+        data-id="{{item.id}}"
       >
         {{item.name}}
       </view>
     </scroll-view>
-    
-    <scroll-view class="product-list" scroll-y>
-      <view class="product-grid">
-        <view wx:for="{{dishList}}" wx:key="id" class="product-card">
-          <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
-          <view class="product-info">
-            <text class="product-name">{{item.name}}</text>
-            <text class="product-price">¥{{item.price}}</text>
+
+    <scroll-view
+      class="product-list"
+      scroll-y
+      enhanced
+      bounces
+      scroll-into-view="{{scrollIntoView}}"
+    >
+      <view id="list-top"></view>
+
+      <view wx:if="{{loading}}" class="state-tip">加载中...</view>
+
+      <view wx:elif="{{isEmpty}}" class="state-tip">{{emptyText}}</view>
+
+      <view wx:else class="product-rows">
+        <view
+          wx:for="{{productList}}"
+          wx:key="key"
+          class="product-row {{item.status !== 1 ? 'sold-out' : ''}}"
+          bindtap="onTapProduct"
+          data-type="{{item.type}}"
+          data-id="{{item.id}}"
+        >
+          <view class="row-image-wrap">
+            <image class="row-image" src="{{item.image}}" mode="aspectFill"></image>
+            <text wx:if="{{item.status !== 1}}" class="row-sold-tag">已售完</text>
+          </view>
+
+          <view class="row-info">
+            <text class="row-name">{{item.name}}</text>
+            <text class="row-desc">{{item.description || '暂无描述'}}</text>
+            <view class="row-bottom">
+              <text class="row-price">¥{{item.price}}</text>
+              <view
+                class="add-btn {{item.status !== 1 ? 'disabled' : ''}}"
+                catchtap="onAddToCart"
+                data-type="{{item.type}}"
+                data-id="{{item.id}}"
+              >+</view>
+            </view>
           </view>
         </view>
-        
-        <view wx:for="{{setmealList}}" wx:key="id" class="product-card">
-          <image class="product-image" src="{{item.image}}" mode="aspectFill"></image>
-          <view class="product-info">
-            <text class="product-name">{{item.name}}</text>
-            <text class="product-price">¥{{item.price}}</text>
-          </view>
+
+        <view wx:if="{{productList.length > 4}}" class="list-end-tip">
+          已经到底啦
         </view>
       </view>
     </scroll-view>
   </view>
+
+  <view class="cart-bar">
+    <view class="cart-left" bindtap="onTapCart" hover-class="cart-hover">
+      <view class="cart-icon-wrap">
+        <image class="cart-icon" src="/assets/icons/cart.png" mode="aspectFit" />
+        <view wx:if="{{cartCount > 0}}" class="cart-badge">{{cartCount > 99 ? '99+' : cartCount}}</view>
+      </view>
+      <view class="cart-summary">
+        <text wx:if="{{cartCount > 0}}" class="cart-total">¥{{cartTotalText}}</text>
+        <text wx:else class="cart-empty-tip">未选购商品</text>
+      </view>
+    </view>
+    <view
+      class="checkout-btn {{cartCount > 0 ? '' : 'disabled'}}"
+      catchtap="onCheckout"
+    >去结算</view>
+  </view>
+
+  <product-popup
+    visible="{{popupVisible}}"
+    dish="{{popupDish}}"
+    bind:close="onClosePopup"
+    bind:added="onPopupAdded"
+  />
+
+  <setmeal-popup
+    visible="{{setmealPopupVisible}}"
+    setmeal="{{popupSetmeal}}"
+    bind:close="onCloseSetmealPopup"
+    bind:added="onSetmealPopupAdded"
+  />
 </view>

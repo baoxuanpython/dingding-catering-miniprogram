@@ -1,0 +1,15 @@
+<view class="page">
+  <view class="brand">
+    <view class="logo">叮叮餐饮</view>
+    <view class="slogan">登录后即可下单</view>
+  </view>
+
+  <button
+    class="login-btn"
+    loading="{{logging}}"
+    disabled="{{logging}}"
+    bindtap="onTapLogin"
+  >
+    微信一键登录
+  </button>
+</view>

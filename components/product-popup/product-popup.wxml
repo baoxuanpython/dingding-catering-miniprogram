@@ -1,0 +1,54 @@
+<view wx:if="{{visible}}" class="popup-root">
+  <view class="popup-mask" bindtap="onClose"></view>
+
+  <view class="popup-panel" catchtap="noop">
+    <view class="popup-header">
+      <image class="popup-cover" src="{{coverImage}}" mode="aspectFill"></image>
+      <view class="popup-head-info">
+        <text class="popup-name">{{dishName}}</text>
+        <text class="popup-desc">{{dishDesc}}</text>
+        <text class="popup-price">{{dishPriceText}}</text>
+      </view>
+      <view class="popup-close" bindtap="onClose">✕</view>
+    </view>
+
+    <scroll-view class="popup-body" scroll-y enhanced bounces>
+      <view wx:if="{{flavorGroups.length === 0}}" class="popup-empty">
+        该商品暂无口味选择
+      </view>
+
+      <view wx:for="{{flavorGroups}}" wx:key="flavorId" class="flavor-group">
+        <text class="flavor-name">{{item.name}}</text>
+        <view class="flavor-values">
+          <view
+            wx:for="{{item.values}}"
+            wx:for-item="value"
+            wx:for-index="vi"
+            wx:key="*this"
+            class="flavor-chip {{vi === item.selectedIndex ? 'active' : ''}}"
+            catchtap="onSelectFlavor"
+            data-fid="{{item.flavorId}}"
+            data-vi="{{vi}}"
+          >{{value}}</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="popup-footer">
+      <view class="quantity-control">
+        <view
+          class="qty-btn {{quantity <= 1 ? 'disabled' : ''}}"
+          catchtap="onMinus"
+        >-</view>
+        <text class="qty-value">{{quantity}}</text>
+        <view
+          class="qty-btn {{quantity >= 99 ? 'disabled' : ''}}"
+          catchtap="onPlus"
+        >+</view>
+      </view>
+      <view class="popup-add {{adding ? 'disabled' : ''}}" catchtap="onAdd">
+        加入购物车 ¥{{totalText}}
+      </view>
+    </view>
+  </view>
+</view>

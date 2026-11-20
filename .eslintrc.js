@@ -8,16 +8,13 @@ module.exports = {
     browser: true,
     node: true,
   },
-  parser: '@typescript-eslint/parser',
+  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: 2018,
-    sourceType: 'module',
+    sourceType: "module",
   },
-  plugins: ['@typescript-eslint'],
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-  ],
+  plugins: ["@typescript-eslint"],
+  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   globals: {
     wx: true,
     App: true,
@@ -29,9 +26,17 @@ module.exports = {
     requireMiniProgram: true,
   },
   rules: {
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/no-non-null-assertion': 'warn',
-    'no-console': 'off',
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "no-console": "off",
   },
-}
+  overrides: [
+    {
+      files: ["scripts/**/*.js"],
+      rules: {
+        "@typescript-eslint/no-var-requires": "off",
+      },
+    },
+  ],
+};

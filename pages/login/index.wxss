@@ -1,0 +1,50 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 64rpx 160rpx;
+  box-sizing: border-box;
+  background-color: var(--color-bg-page, #f0f7f4);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 120rpx;
+}
+
+.logo {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: var(--color-primary-darker, #2e7d32);
+  letter-spacing: 4rpx;
+}
+
+.slogan {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  color: var(--color-text-secondary, #6b8f71);
+}
+
+.login-btn {
+  width: 100%;
+  height: 92rpx;
+  line-height: 92rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: var(--color-primary, #4caf50);
+  border: none;
+  border-radius: 46rpx;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.login-btn[disabled] {
+  opacity: 0.6;
+}
