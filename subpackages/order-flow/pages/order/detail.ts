@@ -1,18 +1,16 @@
 import { request } from "../../../../utils/request";
+import { normalizeImageUrl } from "../../../../utils/image";
 import type { OrderDetail, OrderVO } from "../../../../types/order";
 import type { SetMealDish } from "../../../../types/setmeal";
 import {
   cancelOrder,
   getOrderStatusText,
+  hasReminded,
   payOrder,
   repeatOrder,
   sendOrderReminder,
   showPayFailModal,
 } from "../../../../utils/order";
-
-interface IApp {
-  globalData: { orderListDirty?: boolean };
-}
 
 // 状态副文案回答「我现在该做什么」，无对应文案的状态不渲染这一行
 const STATUS_SUB_TEXT: Record<number, string> = {
@@ -55,6 +53,7 @@ interface OrderView extends Omit<OrderVO, "orderDetailList"> {
   showCancelCard: boolean;
   cancelReasonText: string;
   cancelTimeText: string;
+  reminded: boolean;
 }
 
 function formatAmount(value: number | undefined | null): string {
@@ -112,7 +111,7 @@ function buildItemList(details: OrderDetail[]): OrderItemView[] {
       groups.set(key, {
         key,
         name: detail.name,
-        image: detail.image,
+        image: normalizeImageUrl(detail.image),
         priceText: formatAmount(detail.amount),
         copies: isSetmeal ? detail.setmealCopies || 1 : detail.dishCopies || 1,
         subDishes: isSetmeal ? buildSetmealDishes(detail) : [],
@@ -197,12 +196,18 @@ function buildOrderView(order: OrderVO): OrderView {
     showCancelCard: order.status === 6 && cancelReason.length > 0,
     cancelReasonText: cancelReason,
     cancelTimeText: order.cancelTime || "",
+    reminded: hasReminded(order.id),
   };
 }
 
 Page({
   data: {
     order: null as OrderView | null,
+    cancelVisible: false,
+    // 首屏加载失败或参数非法时置真，避免除导航栏外一片空白且没有重试入口
+    loadFailed: false,
+    // 参数非法时没有可重试的 id，用它决定兜底 UI 给「重新加载」还是「返回」
+    orderId: 0,
   },
 
   loaded: false,
@@ -213,9 +218,11 @@ Page({
 
     if (Number.isNaN(orderId) || orderId <= 0) {
       wx.showToast({ title: "订单参数有误", icon: "none" });
+      this.setData({ loadFailed: true });
       return;
     }
 
+    this.setData({ orderId });
     this.loadOrderDetail(orderId);
   },
 
@@ -235,17 +242,48 @@ Page({
         showLoading: !silent,
       });
 
-      this.setData({ order: buildOrderView(res.data) });
+      this.setData({ order: buildOrderView(res.data), loadFailed: false });
       this.loaded = true;
     } catch (err) {
       console.error("加载订单详情失败:", err);
+      // 静默刷新失败不改变当前展示，只有首屏失败才需要展示兜底 UI
+      if (!silent) {
+        this.setData({ loadFailed: true });
+      }
     }
   },
 
-  async onReminder() {
-    if (!this.data.order) return;
+  onRetryLoad() {
+    const orderId = this.data.orderId;
 
-    await sendOrderReminder(this.data.order.id);
+    if (orderId <= 0) {
+      return;
+    }
+
+    this.loadOrderDetail(orderId);
+  },
+
+  onBack() {
+    wx.navigateBack();
+  },
+
+  async onReminder() {
+    const order = this.data.order;
+
+    if (!order) return;
+
+    const result = await sendOrderReminder(order.id);
+
+    // 成功或后端限流都意味着「本单已催」，催单不改变订单状态，只更新按钮态
+    if (result === "success" || result === "reminded") {
+      this.setData({ "order.reminded": true });
+      return;
+    }
+
+    // 状态已被商家推进或订单已不存在，静默重拉详情让按钮组收敛到真实状态
+    if (result === "stale") {
+      await this.loadOrderDetail(order.id, true);
+    }
   },
 
   async onPay() {
@@ -253,9 +291,14 @@ Page({
 
     if (!order) return;
 
-    const ok = await payOrder(order.number, order.payMethod || 1);
+    const result = await payOrder(order.number, order.payMethod || 1);
 
-    if (!ok) {
+    // 「paying」表示同一订单的支付请求还在飞，属于重复点击，静默忽略
+    if (result === "paying") {
+      return;
+    }
+
+    if (result === "failed") {
       showPayFailModal();
       return;
     }
@@ -265,16 +308,32 @@ Page({
     await this.loadOrderDetail(order.id);
   },
 
-  async onCancel() {
+  onCancel() {
     if (!this.data.order) return;
 
-    const ok = await cancelOrder(this.data.order.id);
+    this.setData({ cancelVisible: true });
+  },
+
+  onCancelClose() {
+    this.setData({ cancelVisible: false });
+  },
+
+  async onCancelConfirm(e: WechatMiniprogram.CustomEvent<{ reason: string }>) {
+    const order = this.data.order;
+
+    if (!order) {
+      return;
+    }
+
+    // 先收起弹层，避免请求期间用户继续点「确定取消」
+    this.setData({ cancelVisible: false });
+
+    const ok = await cancelOrder(order.id, e.detail.reason);
 
     if (ok) {
       this.markOrderListDirty();
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      // 不能延迟返回：这期间用户若手动返回，定时器仍会执行并再退一层
+      wx.navigateBack();
     }
   },
 

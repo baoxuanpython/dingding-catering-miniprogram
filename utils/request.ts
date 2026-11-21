@@ -11,6 +11,8 @@ interface RequestOptions {
   showLoading?: boolean;
   // 跳过 401 自动重登重试，用于重登流程内部的请求，避免自我等待
   skipAuthRetry?: boolean;
+  // 业务错误不弹统一提示，由调用方按 code 自行决定文案，避免同一错误弹两次
+  silentError?: boolean;
 }
 
 interface AppLike {
@@ -36,46 +38,97 @@ export function isAuthErrorCode(code: number): boolean {
 
 let loadingCount = 0;
 
+// showLoading 与 showToast 共用同一个遮罩层，loading 未收起时弹的 toast 会被随后的
+// hideLoading 一并关掉。这里把提示排到 loading 全部收起之后再弹，保证用户看得见
+let pendingNotices: Array<() => void> = [];
+
+let noticeScheduled = false;
+
 // 统一的请求超时时间（毫秒），避免请求挂起时界面锁死
 const REQUEST_TIMEOUT = 15000;
 
-function startLoading() {
+// 对外暴露：加购这类「一次业务操作 = 多次请求」的链路必须复用同一个计数器，
+// 否则它们自己调 wx.showLoading/wx.hideLoading 会被 request 的 endLoading 提前关掉遮罩
+export function startLoading(title = "加载中...") {
   loadingCount += 1;
   if (loadingCount === 1) {
-    wx.showLoading({ title: "加载中...", mask: true });
+    wx.showLoading({ title, mask: true });
   }
 }
 
-function endLoading() {
+export function endLoading() {
   if (loadingCount <= 0) {
     return;
   }
   loadingCount -= 1;
   if (loadingCount === 0) {
     wx.hideLoading();
+    // 延后一个宏任务：hideLoading 异步生效，同一 tick 内弹 toast 仍可能被它吞掉
+    scheduleNotices();
   }
+}
+
+function scheduleNotices() {
+  if (noticeScheduled) {
+    return;
+  }
+
+  noticeScheduled = true;
+  setTimeout(() => {
+    noticeScheduled = false;
+    const notices = pendingNotices;
+    pendingNotices = [];
+    notices.forEach((notice) => notice());
+  }, 0);
+}
+
+function pushNotice(notice: () => void) {
+  pendingNotices.push(notice);
+
+  // loading 已收起时立即安排弹出；否则等最后一个 loading 收起时统一弹
+  if (loadingCount === 0) {
+    scheduleNotices();
+  }
+}
+
+// 鉴权错误由重登链路负责提示，这里不再重复弹，避免同一错误弹两次
+function notifyError(err: unknown) {
+  if (err instanceof ApiError) {
+    if (isAuthErrorCode(err.code)) {
+      return;
+    }
+    handleBusinessError(err.code, err.message);
+    return;
+  }
+
+  wx.showToast({ title: "网络异常，请检查网络", icon: "none" });
 }
 
 export function request<T>(options: RequestOptions): Promise<ApiResponse<T>> {
   const needLoading = options.showLoading === true;
+  const silentError = options.silentError === true;
 
   if (needLoading) {
     startLoading();
   }
 
-  const task = send<T>(options, options.skipAuthRetry !== true);
-
-  if (!needLoading) {
-    return task;
-  }
-
-  return task.then(
+  return send<T>(options, options.skipAuthRetry !== true).then(
     (res) => {
-      endLoading();
+      if (needLoading) {
+        endLoading();
+      }
       return res;
     },
     (err: Error) => {
-      endLoading();
+      if (needLoading) {
+        endLoading();
+      }
+
+      // 统一在 loading 收起之后弹提示；silentError 的调用方按 code 自行提示
+      if (!silentError) {
+        pushNotice(() => notifyError(err));
+      }
+
       throw err;
     },
   );
@@ -139,14 +192,10 @@ function send<T>(
           return;
         }
 
-        handleBusinessError(response);
+        // 提示统一由 request() 在 loading 收起后弹出，这里只 reject，避免重复提示
         reject(new ApiError(response.code, response.msg));
       },
       fail(err) {
-        wx.showToast({
-          title: "网络异常，请检查网络",
-          icon: "none",
-        });
         reject(err);
       },
     });
@@ -185,14 +234,8 @@ function retryAfterRelogin<T>(
     .catch((err: Error) => reject(err));
 }
 
-function handleBusinessError(response: ApiResponse<unknown>) {
-  const { code, msg } = response;
-
+function handleBusinessError(code: number, msg: string) {
   switch (true) {
-    case isAuthErrorCode(code):
-      wx.showToast({ title: "登录已过期，请重新进入", icon: "none" });
-      break;
-
     case code >= 6001 && code <= 6003:
       wx.showToast({ title: msg || "订单操作失败", icon: "none" });
       break;
@@ -261,10 +304,7 @@ function retryUploadAfterRelogin(
     .catch((err: Error) => reject(err));
 }
 
-export function uploadFile(
-  filePath: string,
-  canRetry = true,
-): Promise<string> {
+export function uploadFile(filePath: string, canRetry = true): Promise<string> {
   const app = getApp<AppLike>();
   const token =
     app?.globalData?.token || (wx.getStorageSync("token") as string);

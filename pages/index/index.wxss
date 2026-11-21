@@ -58,6 +58,15 @@ page {
   color: var(--color-text-secondary, #6b8f71);
 }
 
+.shop-closed-tip {
+  margin-top: 12rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #a15c00;
+  background-color: #fff4e5;
+}
+
 .search-bar {
   flex: none;
   padding: 12rpx 24rpx 16rpx;
@@ -146,6 +155,10 @@ page {
   text-align: center;
   font-size: 26rpx;
   color: var(--color-text-secondary, #6b8f71);
+}
+
+.state-retry {
+  color: var(--color-primary, #4caf50);
 }
 
 .product-rows {

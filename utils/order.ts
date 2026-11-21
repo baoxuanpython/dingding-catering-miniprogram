@@ -1,4 +1,4 @@
-import { request } from "./request";
+import { ApiError, request } from "./request";
 import type {
   OrderVO,
   OrdersCancelDTO,
@@ -16,9 +16,39 @@ const ORDER_STATUS_TEXT: Record<number, string> = {
   7: "已退款",
 };
 
-// 催单节流：后端 sendReminder 无频率限制，前端同一订单 60 秒内只放行一次
-const REMINDER_INTERVAL = 60 * 1000;
-const lastReminderAt = new Map<number, number>();
+// 催单记录：后端 OrderVO 没有催单次数/时间字段，无法提供权威状态，只能由客户端本地记录
+// 已知边界：换设备或清小程序缓存后记录归零，同一订单可再次催单，这是不动后端的必然代价
+const REMINDER_STORAGE_KEY = "order_reminded_ids";
+const REMINDER_MAX_RECORDS = 100;
+
+// storage 可能被写入脏数据，读取时必须先校验类型，否则 includes 会抛错
+function readRemindedIds(): number[] {
+  const cached: unknown = wx.getStorageSync(REMINDER_STORAGE_KEY);
+  const ids: unknown[] = Array.isArray(cached) ? cached : [];
+
+  return ids.filter((id): id is number => typeof id === "number");
+}
+
+export function hasReminded(orderId: number): boolean {
+  return readRemindedIds().includes(orderId);
+}
+
+function markReminded(orderId: number): void {
+  const ids = readRemindedIds();
+
+  if (ids.includes(orderId)) {
+    return;
+  }
+
+  ids.push(orderId);
+
+  // 订单 id 不会复用，记录只需保留最近若干条，避免随订单数无限增长
+  if (ids.length > REMINDER_MAX_RECORDS) {
+    ids.splice(0, ids.length - REMINDER_MAX_RECORDS);
+  }
+
+  wx.setStorageSync(REMINDER_STORAGE_KEY, ids);
+}
 
 export function getOrderStatusText(status: number): string {
   return ORDER_STATUS_TEXT[status] ?? "未知状态";
@@ -65,10 +95,21 @@ export function buildOrderDishesText(order: OrderVO): string {
     .join("、");
 }
 
+export type PayResult = "success" | "paying" | "failed";
+
+// 同一订单的支付请求在飞时直接忽略重复点击，避免双击造成重复扣款
+const payingOrderNumbers = new Set<string>();
+
 export async function payOrder(
   orderNumber: string,
   payMethod: number,
-): Promise<boolean> {
+): Promise<PayResult> {
+  if (payingOrderNumbers.has(orderNumber)) {
+    return "paying";
+  }
+
+  payingOrderNumbers.add(orderNumber);
+
   try {
     await request<OrderPaymentVO>({
       url: "/user/order/payment",
@@ -80,10 +121,12 @@ export async function payOrder(
       showLoading: true,
     });
     wx.showToast({ title: "支付成功", icon: "success" });
-    return true;
+    return "success";
   } catch (err) {
     console.error("支付失败:", err);
-    return false;
+    return "failed";
+  } finally {
+    payingOrderNumbers.delete(orderNumber);
   }
 }
 
@@ -98,66 +141,122 @@ export function showPayFailModal(): void {
   });
 }
 
-// 返回 true 表示用户确认并取消成功，调用方据此决定是否刷新/更新列表
-export function cancelOrder(orderId: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    wx.showModal({
-      title: "取消订单",
-      content: "确定要取消该订单吗？",
-      editable: true,
-      placeholderText: "请输入取消原因",
-      success: async (res) => {
-        if (!res.confirm) {
-          resolve(false);
-          return;
-        }
+// 后端 cancelReason 必填，用户没选到具体原因时用这句兜底
+const CANCEL_REASON_FALLBACK = "用户主动取消";
 
-        try {
-          await request<string>({
-            url: `/user/order/cancel/${orderId}`,
-            method: "PUT",
-            data: {
-              cancelReason: res.content || "用户主动取消",
-            } as OrdersCancelDTO,
-            showLoading: true,
-          });
-          wx.showToast({ title: "订单已取消", icon: "success" });
-          resolve(true);
-        } catch (err) {
-          console.error("取消订单失败:", err);
-          resolve(false);
-        }
-      },
-      fail: () => resolve(false),
-    });
-  });
-}
+// 面板收起前有一个空窗，快速双击会发出两次不可逆的取消请求
+const cancellingIds = new Set<number>();
 
-export async function sendOrderReminder(orderId: number): Promise<boolean> {
-  const now = Date.now();
-  const last = lastReminderAt.get(orderId) ?? 0;
-
-  if (now - last < REMINDER_INTERVAL) {
-    wx.showToast({ title: "已催单，请稍候", icon: "none" });
+// 只负责发请求，原因由调用方的取消原因弹层收集；
+// 返回 true 表示取消成功，调用方据此决定是否刷新/更新列表
+export async function cancelOrder(
+  orderId: number,
+  reason?: string,
+): Promise<boolean> {
+  if (cancellingIds.has(orderId)) {
     return false;
   }
+
+  cancellingIds.add(orderId);
+
+  try {
+    await request<string>({
+      url: `/user/order/cancel/${orderId}`,
+      method: "PUT",
+      data: {
+        cancelReason: reason?.trim() || CANCEL_REASON_FALLBACK,
+      } as OrdersCancelDTO,
+      showLoading: true,
+    });
+    wx.showToast({ title: "订单已取消", icon: "success" });
+    return true;
+  } catch (err) {
+    console.error("取消订单失败:", err);
+    return false;
+  } finally {
+    cancellingIds.delete(orderId);
+  }
+}
+
+export type ReminderResult = "success" | "reminded" | "stale" | "failed";
+
+// 同 id 请求进行中直接忽略：遮罩渲染出来之前有一个空窗，快速双击仍会发两次
+const remindingIds = new Set<number>();
+
+const REMIND_ERROR_TEXT: Record<number, string> = {
+  6001: "当前订单状态不能催单",
+  6002: "订单不存在，请刷新",
+};
+
+export async function sendOrderReminder(
+  orderId: number,
+): Promise<ReminderResult> {
+  // 每个订单只允许催一次，重复点击直接提示，不发请求
+  if (hasReminded(orderId)) {
+    wx.showToast({ title: "已催单，请耐心等待", icon: "none" });
+    return "reminded";
+  }
+
+  if (remindingIds.has(orderId)) {
+    return "failed";
+  }
+
+  remindingIds.add(orderId);
 
   try {
     await request<string>({
       url: `/user/order/reminder/${orderId}`,
       method: "GET",
       showLoading: true,
+      // 后端 6001/6002/6004 的文案与界面状态需要对齐，统一由本函数提示
+      silentError: true,
     });
-    lastReminderAt.set(orderId, Date.now());
+    // 只在成功后落记录：失败仍允许重试，否则一次网络抖动会把用户永久锁死
+    markReminded(orderId);
     wx.showToast({ title: "催单成功", icon: "success" });
-    return true;
+    return "success";
   } catch (err) {
-    console.error("催单失败:", err);
-    return false;
+    if (err instanceof ApiError) {
+      if (err.code === 6004) {
+        // 后端 60 秒限流，用户视角同样是「已催单」，锁定按钮让提示与界面保持一致
+        markReminded(orderId);
+        wx.showToast({ title: "已催单，请耐心等待", icon: "none" });
+        return "reminded";
+      }
+
+      if (err.code === 6001 || err.code === 6002) {
+        wx.showToast({ title: REMIND_ERROR_TEXT[err.code], icon: "none" });
+        // 本地状态已与服务端不符，交由调用方重拉数据收敛
+        return "stale";
+      }
+
+      wx.showToast({
+        title: err.message || "催单失败，请稍后重试",
+        icon: "none",
+      });
+      return "failed";
+    }
+
+    // 网络异常已由 request 层统一提示，这里只兜底「静默失败」场景，避免连弹两个 toast
+    if (!(err as { errMsg?: string }).errMsg) {
+      wx.showToast({ title: "催单失败，请稍后重试", icon: "none" });
+    }
+    return "failed";
+  } finally {
+    remindingIds.delete(orderId);
   }
 }
 
+// 同 id 请求进行中直接忽略：双击会把同一份订单重复加进购物车
+const repeatingIds = new Set<number>();
+
 export async function repeatOrder(orderId: number): Promise<boolean> {
+  if (repeatingIds.has(orderId)) {
+    return false;
+  }
+
+  repeatingIds.add(orderId);
+
   try {
     await request<string>({
       url: `/user/order/repetition/${orderId}`,
@@ -170,5 +269,7 @@ export async function repeatOrder(orderId: number): Promise<boolean> {
   } catch (err) {
     console.error("再来一单失败:", err);
     return false;
+  } finally {
+    repeatingIds.delete(orderId);
   }
 }

@@ -1,9 +1,23 @@
+page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .container {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-bg-page, #f0f7f4);
-  padding: 0 0 150rpx;
-  align-items: stretch;
-  justify-content: flex-start;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.scroll-area {
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 .setmeal-image {
   width: 100%;
@@ -108,11 +122,28 @@
   color: var(--color-text-secondary, #6b8f71);
   padding: 20rpx 0;
 }
+.load-failed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.load-failed-text {
+  font-size: 30rpx;
+  color: var(--color-text-secondary, #6b8f71);
+  margin-bottom: 32rpx;
+}
+.load-failed-btn {
+  padding: 20rpx 48rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  background-color: var(--color-primary, #4caf50);
+  border-radius: 40rpx;
+}
 .bottom-bar {
-  position: fixed;
-  bottom: 16rpx;
-  left: 16rpx;
-  right: 16rpx;
+  flex: none;
+  margin: 0 16rpx 16rpx;
   height: 104rpx;
   background-color: var(--color-bg-card, #ffffff);
   display: flex;

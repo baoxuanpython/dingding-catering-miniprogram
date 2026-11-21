@@ -136,6 +136,11 @@ page {
   border-color: var(--color-primary, #4caf50);
 }
 
+.action-btn.disabled {
+  color: var(--color-text-disabled, #bdbdbd);
+  border-color: var(--color-border-light, #e8f5e9);
+}
+
 .page-loading {
   padding: 120rpx 0;
   text-align: center;

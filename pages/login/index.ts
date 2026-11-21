@@ -1,10 +1,3 @@
-interface IApp {
-  globalData: {
-    token: string;
-  };
-  login(): Promise<void>;
-}
-
 Page({
   data: {
     logging: false,
@@ -24,7 +17,16 @@ Page({
       wx.reLaunch({ url: "/pages/index/index" });
     } catch (err) {
       console.error("登录失败:", err);
-      wx.showToast({ title: "登录失败，请重试", icon: "none" });
+
+      // wx.request 的 fail 回调给的是带 errMsg 的普通对象，request 层已弹过「网络异常」，
+      // 这里再弹会把信息量更大的那条覆盖掉；但 wx.login 失败（login:fail）没有任何层提示过，必须自己弹
+      const errMsg = (err as { errMsg?: string })?.errMsg ?? "";
+      const isRequestFail = errMsg.startsWith("request:");
+
+      if (!isRequestFail) {
+        wx.showToast({ title: "登录失败，请重试", icon: "none" });
+      }
+
       this.setData({ logging: false });
     }
   },

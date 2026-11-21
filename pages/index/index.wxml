@@ -8,6 +8,10 @@
       </view>
     </view>
     <text class="shop-sub">现点现做 · 美味即达</text>
+    <!-- 打烊提示放在第一步而不是提交时：允许用户先选菜，但提前告知不能下单 -->
+    <view wx:if="{{shopStatusLoaded && !shopOpen}}" class="shop-closed-tip">
+      <text>店铺休息中，暂不接单，可先浏览选购</text>
+    </view>
   </view>
 
   <view class="search-bar">
@@ -47,7 +51,11 @@
     >
       <view id="list-top"></view>
 
-      <view wx:if="{{loading}}" class="state-tip">加载中...</view>
+      <view wx:if="{{loadFailed}}" class="state-tip state-retry" bindtap="onRetryLoad">
+        加载失败，点击重试
+      </view>
+
+      <view wx:elif="{{loading}}" class="state-tip">加载中...</view>
 
       <view wx:elif="{{isEmpty}}" class="state-tip">{{emptyText}}</view>
 

@@ -1,17 +1,26 @@
 <navigation-bar title="套餐详情" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <view wx:if="{{setmeal}}">
+  <view wx:if="{{loadFailed}}" class="load-failed">
+    <text class="load-failed-text">套餐信息加载失败</text>
+    <view class="load-failed-btn" bindtap="onBack">返回重新选择</view>
+  </view>
+
+  <scroll-view wx:if="{{setmeal}}" class="scroll-area" scroll-y enhanced bounces>
     <image src="{{setmeal.image}}" mode="widthFix" class="setmeal-image"></image>
     <view class="setmeal-info">
       <text class="setmeal-name">{{setmeal.name}}</text>
       <text class="setmeal-price">¥{{setmeal.price}}</text>
       <text class="setmeal-desc">{{setmeal.description}}</text>
     </view>
-    
+
     <view class="dishes-section">
       <text class="section-title">套餐包含</text>
 
       <view wx:if="{{dishesLoading}}" class="dishes-loading">套餐内容加载中...</view>
+
+      <view wx:if="{{dishesFailed}}" class="dishes-empty">
+        套餐内容加载失败，请返回重试
+      </view>
 
       <view wx:for="{{dishItems}}" wx:for-index="di" wx:key="dishId" class="dish-item">
         <view class="dish-head">
@@ -37,18 +46,18 @@
         </view>
       </view>
 
-      <view wx:if="{{!dishesLoading && dishItems.length === 0}}" class="dishes-empty">
+      <view wx:if="{{!dishesLoading && !dishesFailed && dishItems.length === 0}}" class="dishes-empty">
         该套餐内菜品暂无可选口味
       </view>
     </view>
-    
-    <view class="bottom-bar">
-      <view class="quantity-control">
-        <view class="qty-btn {{quantity <= 1 ? 'disabled' : ''}}" bindtap="onMinus">-</view>
-        <text class="qty-value">{{quantity}}</text>
-        <view class="qty-btn" bindtap="onPlus">+</view>
-      </view>
-      <view class="add-cart-btn {{adding ? 'disabled' : ''}}" bindtap="onAddToCart">加入购物车</view>
+  </scroll-view>
+
+  <view wx:if="{{setmeal}}" class="bottom-bar">
+    <view class="quantity-control">
+      <view class="qty-btn {{quantity <= 1 ? 'disabled' : ''}}" bindtap="onMinus">-</view>
+      <text class="qty-value">{{quantity}}</text>
+      <view class="qty-btn" bindtap="onPlus">+</view>
     </view>
+    <view class="add-cart-btn {{adding ? 'disabled' : ''}}" bindtap="onAddToCart">加入购物车</view>
   </view>
 </view>

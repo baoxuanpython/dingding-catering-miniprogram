@@ -1,6 +1,8 @@
 <navigation-bar title="确认订单" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <view wx:if="{{loading}}" class="page-loading">加载中...</view>
+  <view wx:if="{{loadFailed}}" class="page-loading state-retry" bindtap="onRetryLoad">加载失败，点击重试</view>
+
+  <view wx:elif="{{loading}}" class="page-loading">加载中...</view>
 
   <view wx:elif="{{cartList.length === 0 && orderCreated}}" class="empty-state">
     <text class="empty-text">订单已提交</text>
@@ -13,6 +15,7 @@
   </view>
 
   <block wx:else>
+    <scroll-view class="scroll-area" scroll-y enhanced bounces>
     <view class="address-section" bindtap="onTapSelectAddress">
       <view wx:if="{{address}}">
         <text class="consignee">{{address.consignee}} {{address.phone}}</text>
@@ -140,6 +143,7 @@
         <text>¥{{payAmountText}}</text>
       </view>
     </view>
+    </scroll-view>
 
     <view class="submit-bar">
       <view class="submit-amount">

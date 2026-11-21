@@ -1,6 +1,6 @@
 <navigation-bar title="我的" back="{{false}}" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <view class="user-header" bindtap="onTapEditProfile" hover-class="hover-fade">
+  <view class="user-header" bindtap="onTapHeader" hover-class="hover-fade">
     <image
       wx:if="{{userInfo && userInfo.avatar}}"
       src="{{userInfo.avatar}}"
@@ -12,7 +12,8 @@
     </view>
 
     <view class="user-meta">
-      <text class="nickname">{{userInfo ? (userInfo.name || '未设置昵称') : '加载中'}}</text>
+      <text wx:if="{{loadFailed}}" class="nickname">加载失败，点击重试</text>
+      <text wx:else class="nickname">{{userInfo ? (userInfo.name || '未设置昵称') : '加载中'}}</text>
       <text class="user-hint">点击查看个人信息</text>
     </view>
 

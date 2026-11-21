@@ -1,0 +1,40 @@
+<view wx:if="{{visible}}" class="popup-root">
+  <view class="popup-mask" bindtap="onClose"></view>
+
+  <view class="popup-panel" catchtap="noop">
+    <view class="popup-header">
+      <text class="popup-title">取消订单</text>
+      <text class="popup-desc">请选择取消原因</text>
+      <view class="popup-close" bindtap="onClose">✕</view>
+    </view>
+
+    <view class="popup-body">
+      <view
+        wx:for="{{options}}"
+        wx:key="*this"
+        class="reason-item {{index === selectedIndex ? 'active' : ''}}"
+        bindtap="onSelect"
+        data-index="{{index}}"
+      >
+        <text class="reason-text">{{item}}</text>
+        <text wx:if="{{index === selectedIndex}}" class="reason-check">✓</text>
+      </view>
+
+      <view wx:if="{{isOther}}" class="custom-wrap">
+        <input
+          class="custom-input"
+          placeholder="请填写取消原因"
+          value="{{customReason}}"
+          maxlength="{{maxLength}}"
+          bindinput="onInput"
+        />
+        <text class="custom-count">{{countText}}</text>
+      </view>
+    </view>
+
+    <view class="popup-footer">
+      <view class="popup-btn ghost" bindtap="onClose">再想想</view>
+      <view class="popup-btn primary {{confirming ? 'disabled' : ''}}" bindtap="onConfirm">确定取消</view>
+    </view>
+  </view>
+</view>

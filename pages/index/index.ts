@@ -1,16 +1,10 @@
 import { request } from "../../utils/request";
+import { fetchShopOpen } from "../../utils/shop";
 import { normalizeImageUrl } from "../../utils/image";
 import type { Category } from "../../types/category";
 import type { DishVO } from "../../types/dish";
 import type { Setmeal } from "../../types/setmeal";
 import type { ShoppingCart } from "../../types/shoppingCart";
-
-interface IApp {
-  waitForLogin(): Promise<void>;
-  requireLogin(): boolean;
-  globalData: { cartCount: number; cartTotal: number };
-  updateCartData(cartList: ShoppingCart[]): void;
-}
 
 interface ProductTapDataset {
   type: "dish" | "setmeal";
@@ -39,9 +33,13 @@ Page({
     keyword: "",
     loading: true,
     isEmpty: false,
+    // 请求失败与「真的没商品」必须区分：失败时若走空态，用户会以为本店没菜
+    loadFailed: false,
     emptyText: "该分类下暂无商品",
     shopOpen: false,
     shopStatusText: "休息中",
+    // 只有真正拿到营业状态后才置 true，避免首屏未加载完成就闪出「休息中」通栏提示
+    shopStatusLoaded: false,
     cartCount: 0,
     cartTotalText: "0.00",
     scrollIntoView: "",
@@ -53,12 +51,27 @@ Page({
 
   requestSeq: 0,
 
+  // 「加载中」的复位权归属：只有把 loading 置 true 的非静默请求能复位它
+  loadingSeq: 0,
+
   inited: false,
 
-  addingKey: "",
+  // 正在加购的商品 key 集合：同一商品防重复提交，不同商品可并行加购
+  addingKeys: new Set<string>(),
+
+  // 搜索防抖句柄：每次输入都全量重建列表会明显掉帧
+  keywordTimer: 0,
 
   onLoad() {
     this.initPage();
+  },
+
+  onUnload() {
+    // 页面销毁后防抖回调仍会执行并 setData，必须提前清掉
+    if (this.keywordTimer) {
+      clearTimeout(this.keywordTimer);
+      this.keywordTimer = 0;
+    }
   },
 
   onShow() {
@@ -66,6 +79,8 @@ Page({
       return;
     }
 
+    // 营业状态商家随时可改，onShow 是用户回到首页的天然时机，静默拉一次避免徽标长期失真
+    this.loadShopStatus();
     this.loadCartInfo();
 
     if (this.data.currentCategory) {
@@ -88,16 +103,16 @@ Page({
   },
 
   async loadShopStatus() {
-    try {
-      const res = await request<number>({ url: "/user/shop/status" });
-      const open = res.data === 1;
-      this.setData({
-        shopOpen: open,
-        shopStatusText: open ? "营业中" : "休息中",
-      });
-    } catch (err) {
-      console.error("加载店铺状态失败:", err);
-    }
+    // 静默刷新：失败时保留上一次已知值，比把徽标改成「状态未知」更不打扰用户
+    const open = await fetchShopOpen();
+
+    if (open === null) return;
+
+    this.setData({
+      shopOpen: open,
+      shopStatusText: open ? "营业中" : "休息中",
+      shopStatusLoaded: true,
+    });
   },
 
   async loadCartInfo() {
@@ -155,7 +170,22 @@ Page({
       this.loadProducts(first);
     } catch (err) {
       console.error("加载分类失败:", err);
-      this.setData({ loading: false, isEmpty: true });
+      // 分类都没拿到时不能显示「该分类下暂无商品」，否则用户会误判本店无菜
+      this.setData({ loading: false, isEmpty: false, loadFailed: true });
+    }
+  },
+
+  onRetryLoad() {
+    this.setData({ loadFailed: false });
+
+    // 分类为空说明首屏那次请求整体失败，重试要从分类开始
+    if (this.data.categories.length === 0) {
+      this.loadCategories();
+      return;
+    }
+
+    if (this.data.currentCategory) {
+      this.loadProducts(this.data.currentCategory);
     }
   },
 
@@ -167,17 +197,37 @@ Page({
       return;
     }
 
-    this.setData({ currentCategory: category, keyword: "" });
+    // 旧分类的搜索防抖回调仍在排队，不清掉会在新分类加载途中重建一次空列表
+    if (this.keywordTimer) {
+      clearTimeout(this.keywordTimer);
+      this.keywordTimer = 0;
+    }
+
+    this.setData({ currentCategory: category, keyword: "", loadFailed: false });
     this.loadProducts(category);
     this.scrollToTop();
   },
 
   onKeywordInput(e: WechatMiniprogram.Input) {
+    // 先只更新输入框，重建列表推迟到停止输入后再做，避免逐字全量 setData
     this.setData({ keyword: e.detail.value });
-    this.buildProductList();
+
+    if (this.keywordTimer) {
+      clearTimeout(this.keywordTimer);
+    }
+
+    this.keywordTimer = setTimeout(() => {
+      this.keywordTimer = 0;
+      this.buildProductList();
+    }, 200) as unknown as number;
   },
 
   onClearKeyword() {
+    if (this.keywordTimer) {
+      clearTimeout(this.keywordTimer);
+      this.keywordTimer = 0;
+    }
+
     this.setData({ keyword: "" });
     this.buildProductList();
   },
@@ -243,12 +293,14 @@ Page({
     const seq = ++this.requestSeq;
 
     if (!silent) {
+      this.loadingSeq = seq;
       this.setData({
         dishList: [],
         setmealList: [],
         productList: [],
         loading: true,
         isEmpty: false,
+        loadFailed: false,
       });
     }
 
@@ -267,6 +319,7 @@ Page({
             image: normalizeImageUrl(item.image),
           })),
           setmealList: [],
+          loadFailed: false,
         });
         this.buildProductList();
       } else if (category.type === 2) {
@@ -283,6 +336,7 @@ Page({
             image: normalizeImageUrl(item.image),
           })),
           dishList: [],
+          loadFailed: false,
         });
         this.buildProductList();
       } else {
@@ -291,15 +345,20 @@ Page({
           setmealList: [],
           productList: [],
           isEmpty: true,
+          loadFailed: false,
         });
       }
     } catch (err) {
       console.error("加载商品失败:", err);
       if (seq === this.requestSeq && !silent) {
-        this.setData({ isEmpty: true });
+        // 失败不能落到「该分类下暂无商品」，那会让用户以为菜品下架了
+        this.setData({ isEmpty: false, loadFailed: true });
       }
     } finally {
-      if (seq === this.requestSeq && !silent) {
+      // 加载标志属于界面状态，与「数据不被旧响应覆盖」的 seq 职责无关：
+      // 由认领者无条件复位，否则被静默刷新顶掉时 loading 会永久停在 true，列表再也不渲染
+      if (this.loadingSeq === seq) {
+        this.loadingSeq = 0;
         this.setData({ loading: false });
       }
     }
@@ -367,17 +426,19 @@ Page({
       return;
     }
 
-    if (this.addingKey) {
+    if (this.addingKeys.has(item.key)) {
       return;
     }
 
-    this.addingKey = item.key;
+    this.addingKeys.add(item.key);
 
     try {
       await request({
         url: "/user/shoppingCart/add",
         method: "POST",
         data: type === "dish" ? { dishId: id } : { setmealId: id },
+        // 下方 catch 会弹更具体的「加入购物车失败」，避免被通用提示覆盖
+        silentError: true,
       });
       wx.showToast({ title: "已加入购物车", icon: "none" });
       await this.loadCartInfo();
@@ -385,7 +446,7 @@ Page({
       console.error("加入购物车失败:", err);
       wx.showToast({ title: "加入购物车失败", icon: "none" });
     } finally {
-      this.addingKey = "";
+      this.addingKeys.delete(item.key);
     }
   },
 

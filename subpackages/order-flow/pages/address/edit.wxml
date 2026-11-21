@@ -1,5 +1,6 @@
 <navigation-bar title="{{isEdit ? '编辑地址' : '新增地址'}}" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
+  <scroll-view class="scroll-area" scroll-y enhanced bounces>
   <view class="form">
     <view class="form-item">
       <text class="label">收件人 *</text>
@@ -13,9 +14,9 @@
 
     <view class="form-item">
       <text class="label">性别 *</text>
-      <radio-group bindchange="onRadioChange">
-        <label><radio value="男" checked="{{form.sex === '男'}}" /> 男</label>
-        <label><radio value="女" checked="{{form.sex === '女'}}" /> 女</label>
+      <radio-group class="radio-group" bindchange="onRadioChange">
+        <label class="radio-item"><radio class="radio-icon" value="男" checked="{{form.sex === '男'}}" /> 男</label>
+        <label class="radio-item"><radio class="radio-icon" value="女" checked="{{form.sex === '女'}}" /> 女</label>
       </radio-group>
     </view>
 
@@ -41,6 +42,7 @@
       <switch checked="{{form.isDefault === 1}}" bindchange="onSwitchChange" color="#4caf50"></switch>
     </view>
   </view>
+  </scroll-view>
 
   <button class="save-btn" bindtap="onSave">保存</button>
 </view>

@@ -1,5 +1,6 @@
 import { request } from "../../../../utils/request";
 import { normalizeImageUrl } from "../../../../utils/image";
+import { fetchShopOpen } from "../../../../utils/shop";
 import { payOrder } from "../../../../utils/order";
 import type { ShoppingCart } from "../../../../types/shoppingCart";
 import type { AddressBook } from "../../../../types/address";
@@ -9,14 +10,6 @@ interface CartItem extends ShoppingCart {
   image: string;
   flavorText: string;
   lineAmountText: string;
-}
-
-interface IApp {
-  updateCartData(cartList: ShoppingCart[]): void;
-  globalData: {
-    orderListDirty?: boolean;
-    orderListStatus?: number;
-  };
 }
 
 // 接口文档未定义打包费规则，后端只做透传，这里保持固定值
@@ -66,6 +59,23 @@ function buildEstimatedDate(deliveryStatus: number, pickTime: string): Date {
   return target;
 }
 
+function isNextDay(target: Date, now: Date): boolean {
+  return (
+    target.getFullYear() !== now.getFullYear() ||
+    target.getMonth() !== now.getMonth() ||
+    target.getDate() !== now.getDate()
+  );
+}
+
+// 送达文案必须带上「明日」：选了已过去的时间会被静默顺延到明天，
+// 只显示时钟会让用户以为今天送达，与后端实际记录的时间不一致
+function buildDeliveryText(deliveryStatus: number, pickTime: string): string {
+  const target = buildEstimatedDate(deliveryStatus, pickTime);
+  const prefix = isNextDay(target, new Date()) ? "明日 " : "";
+
+  return `预计 ${prefix}${formatClock(target)} 送达`;
+}
+
 // 后端把口味值存成逗号分隔字符串，这里拆开用于展示
 function splitFlavorValues(flavorVal: string): string {
   if (!flavorVal) {
@@ -99,6 +109,8 @@ Page({
     submitting: false,
     // 订单是否已创建：下单成功后购物车会被清空，此时不能再展示「购物车是空的」
     orderCreated: false,
+    // 首屏购物车拉取失败时若落进空态，用户会以为购物车被清空，进而不下单直接离开
+    loadFailed: false,
   },
 
   inited: false,
@@ -110,9 +122,17 @@ Page({
   },
 
   onShow() {
+    if (!this.inited) {
+      return;
+    }
+
     // 从地址列表返回时数据由上一页 setData 写入，这里只兜底刷新购物车
-    if (this.inited) {
-      this.loadCartList(true);
+    this.loadCartList(true);
+
+    // 用户在地址列表新增了首个地址却没点选就返回：这里兜底拉默认地址，
+    // 否则页面仍停在「请选择收货地址」，必须再进一次列表才能选
+    if (!this.data.address) {
+      this.loadDefaultAddress();
     }
   },
 
@@ -121,7 +141,7 @@ Page({
 
     this.setData({
       pickTime,
-      deliveryTimeText: `预计 ${pickTime} 送达`,
+      deliveryTimeText: buildDeliveryText(1, pickTime),
     });
   },
 
@@ -129,6 +149,8 @@ Page({
     try {
       const res = await request<AddressBook>({
         url: "/user/addressBook/default",
+        // 没有默认地址是正常状态（用户可手动去选），不该用错误提示打断结算
+        silentError: true,
       });
       if (res.data) {
         this.setData({ address: res.data });
@@ -157,14 +179,21 @@ Page({
       this.setData({
         cartList,
         loading: false,
+        loadFailed: false,
       });
 
       this.recalcSummary();
       this.inited = true;
     } catch (err) {
       console.error("加载购物车失败:", err);
-      this.setData({ loading: false });
+      // 静默刷新失败保留现有清单；首屏失败必须给重试入口，不能伪装成空购物车
+      this.setData({ loading: false, loadFailed: !silent });
     }
+  },
+
+  onRetryLoad() {
+    this.setData({ loadFailed: false });
+    this.loadCartList();
   },
 
   buildCartItem(item: ShoppingCart): CartItem {
@@ -218,19 +247,27 @@ Page({
 
     this.setData({
       deliveryStatus: status,
-      deliveryTimeText:
+      deliveryTimeText: buildDeliveryText(
+        status,
         status === 1
-          ? `预计 ${formatClock(addMinutes(new Date(), DELIVERY_MINUTES))} 送达`
-          : `预计 ${this.data.pickTime} 送达`,
+          ? formatClock(addMinutes(new Date(), DELIVERY_MINUTES))
+          : this.data.pickTime,
+      ),
     });
   },
 
   onPickTime(e: WechatMiniprogram.PickerChange) {
     const pickTime = String(e.detail.value);
+    const target = buildEstimatedDate(0, pickTime);
+
+    // 选到当天已过去的时刻会被顺延到明天，必须显式告知，否则用户以为今天送达
+    if (isNextDay(target, new Date())) {
+      wx.showToast({ title: "该时间已过，将安排明日送达", icon: "none" });
+    }
 
     this.setData({
       pickTime,
-      deliveryTimeText: `预计 ${pickTime} 送达`,
+      deliveryTimeText: buildDeliveryText(0, pickTime),
     });
   },
 
@@ -284,8 +321,18 @@ Page({
       return;
     }
 
-    // submitting 贯穿「建单 → 支付」全程，避免支付期间按钮恢复可点导致二次下单
+    // 锁必须在第一个 await 之前生效：营业状态查询是异步的，若等它返回再上锁，
+    // 双击的第二次点击会趁这个空窗通过 submitting 守卫，产生两笔真实订单
     this.setData({ submitting: true });
+
+    const shopOpen = await fetchShopOpen();
+
+    // null 表示无法确认营业状态，按可下单放行，避免断网时把用户永久挡住
+    if (shopOpen === false) {
+      wx.showToast({ title: "店铺已打烊，暂不接单", icon: "none" });
+      this.setData({ submitting: false });
+      return;
+    }
 
     try {
       const estimated = buildEstimatedDate(
@@ -328,9 +375,14 @@ Page({
 
   // 支付失败时唯一的补救入口是待付款列表，因此 submitting 只在失败分支复位
   async handlePayment(order: OrderSubmitVO) {
-    const paid = await payOrder(order.orderNumber, this.data.payMethod);
+    const result = await payOrder(order.orderNumber, this.data.payMethod);
 
-    if (paid) {
+    // 「paying」表示同一订单的支付请求还在飞，属于重复点击，静默忽略
+    if (result === "paying") {
+      return;
+    }
+
+    if (result === "success") {
       this.redirectToDetail(order.id);
       return;
     }
@@ -355,17 +407,25 @@ Page({
   redirectToDetail(orderId: number) {
     wx.redirectTo({
       url: `/subpackages/order-flow/pages/order/detail?id=${orderId}`,
+      // 跳转失败（如页面栈已满）时页面仍存活，不复位锁会让按钮永久停在「提交中」
+      fail: () => {
+        this.setData({ submitting: false });
+      },
     });
   },
 
   async clearCart() {
     getApp<IApp>().updateCartData([]);
-    this.setData({ cartList: [], totalCount: 0, totalAmount: 0 });
+    this.setData({ cartList: [] });
+    // 走统一重算，否则 totalAmountText/payAmountText 仍停在清空前的金额
+    this.recalcSummary();
 
     try {
       await request<string>({
         url: "/user/shoppingCart/clean",
         method: "DELETE",
+        // 订单已下单成功，这次清空只是幂等兜底，失败绝不能弹错误让用户以为下单失败
+        silentError: true,
       });
     } catch (err) {
       console.error("清空购物车失败:", err);

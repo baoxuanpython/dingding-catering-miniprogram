@@ -28,17 +28,30 @@ Component({
     attached() {
       const { statusBarHeight, windowWidth } = wx.getWindowInfo();
       const { platform } = wx.getDeviceInfo();
-      const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
       const ios = platform === "ios";
       const navBarHeight = ios ? 44 : 48;
+
+      // Skyline 初始化时序下该 API 可能抛异常并返回 undefined，
+      // 取不到胶囊位置就按「胶囊宽 87px + 右边距 9px」兜底，保证右侧留白不为 0
+      let menuButtonLeft = windowWidth - 96;
+
+      try {
+        const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
+
+        if (menuButtonInfo && typeof menuButtonInfo.left === "number") {
+          menuButtonLeft = menuButtonInfo.left;
+        }
+      } catch (err) {
+        console.error("获取胶囊按钮位置失败，使用兜底值:", err);
+      }
 
       // 高度与内边距必须来自同一个 statusBarHeight，
       // 不能一边用 env(safe-area-inset-top)、一边用 JS 计算，否则两者不等值会把标题挤出可视区
       this.setData({
         ios,
         safeAreaTop: `height: ${statusBarHeight + navBarHeight}px; padding-top: ${statusBarHeight}px`,
-        innerPaddingRight: `padding-right: ${windowWidth - menuButtonInfo.left}px`,
-        leftWidth: `width: ${windowWidth - menuButtonInfo.left}px`,
+        innerPaddingRight: `padding-right: ${windowWidth - menuButtonLeft}px`,
+        leftWidth: `width: ${windowWidth - menuButtonLeft}px`,
       });
 
       this.computeShowBack();

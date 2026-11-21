@@ -21,6 +21,9 @@ Page({
     regionText: "请选择省/市/区",
   },
 
+  // 保存是不可逆操作，双击会新增两条完全相同的地址
+  saving: false,
+
   onLoad(options: Record<string, string | undefined>) {
     if (options.id) {
       this.setData({ isEdit: true });
@@ -111,7 +114,13 @@ Page({
   },
 
   async onSave() {
+    if (this.saving) {
+      return;
+    }
+
     if (!this.validateForm()) return;
+
+    this.saving = true;
 
     // 新增时 id 无业务语义，带着 id:0 提交等于赌后端宽容，这里显式剔除
     const { id, ...rest } = this.data.form;
@@ -130,11 +139,12 @@ Page({
         title: this.data.isEdit ? "修改成功" : "添加成功",
         icon: "success",
       });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      // toast 是浮层，页面退出后仍会显示完；延迟返回期间用户若手动返回会连退两层
+      wx.navigateBack();
     } catch (err) {
       console.error("保存地址失败:", err);
+    } finally {
+      this.saving = false;
     }
   },
 });

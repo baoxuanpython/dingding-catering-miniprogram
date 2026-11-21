@@ -1,48 +1,54 @@
 <navigation-bar title="购物车" back="{{false}}" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <view wx:if="{{loading}}" class="state-tip">加载中...</view>
-
-  <view wx:elif="{{cartList.length > 0}}">
-    <view class="cart-header">
-      <text class="cart-count">共 {{totalCount}} 件商品</text>
-      <text class="clean-btn" bindtap="onClean">清空购物车</text>
+  <scroll-view class="scroll-area" scroll-y enhanced bounces>
+    <view wx:if="{{loadFailed}}" class="state-tip state-retry" bindtap="onRetryLoad">
+      加载失败，点击重试
     </view>
 
-    <view wx:for="{{cartList}}" wx:key="id" class="cart-item">
-      <image src="{{item.image}}" mode="aspectFill" class="item-image"></image>
+    <view wx:elif="{{loading}}" class="state-tip">加载中...</view>
 
-      <view class="item-info">
-        <view class="item-title">
-          <text class="item-name">{{item.name}}</text>
-          <text class="item-delete" catchtap="onDelete" data-id="{{item.id}}">删除</text>
-        </view>
+    <view wx:elif="{{cartList.length > 0}}">
+      <view class="cart-header">
+        <text class="cart-count">共 {{totalCount}} 件商品</text>
+        <text class="clean-btn" bindtap="onClean">清空购物车</text>
+      </view>
 
-        <text wx:if="{{item.flavorText}}" class="item-flavor">{{item.flavorText}}</text>
+      <view wx:for="{{cartList}}" wx:key="id" class="cart-item">
+        <image src="{{item.image}}" mode="aspectFill" class="item-image"></image>
 
-        <view class="item-bottom">
-          <view class="item-price-wrap">
-            <text class="item-price">¥{{item.lineAmountText}}</text>
-            <text wx:if="{{item.number > 1}}" class="item-unit">¥{{item.amount}}/份</text>
+        <view class="item-info">
+          <view class="item-title">
+            <text class="item-name">{{item.name}}</text>
+            <text class="item-delete" catchtap="onDelete" data-id="{{item.id}}">删除</text>
           </view>
 
-          <view class="quantity-control">
-            <view
-              class="qty-btn {{item.number <= 1 ? 'disabled' : ''}}"
-              catchtap="onMinus"
-              data-id="{{item.id}}"
-            >-</view>
-            <text class="qty-num">{{item.number}}</text>
-            <view class="qty-btn" catchtap="onPlus" data-id="{{item.id}}">+</view>
+          <text wx:if="{{item.flavorText}}" class="item-flavor">{{item.flavorText}}</text>
+
+          <view class="item-bottom">
+            <view class="item-price-wrap">
+              <text class="item-price">¥{{item.lineAmountText}}</text>
+              <text wx:if="{{item.number > 1}}" class="item-unit">¥{{item.amount}}/份</text>
+            </view>
+
+            <view class="quantity-control">
+              <view
+                class="qty-btn {{item.number <= 1 ? 'disabled' : ''}}"
+                catchtap="onMinus"
+                data-id="{{item.id}}"
+              >-</view>
+              <text class="qty-num">{{item.number}}</text>
+              <view class="qty-btn" catchtap="onPlus" data-id="{{item.id}}">+</view>
+            </view>
           </view>
         </view>
       </view>
     </view>
-  </view>
 
-  <view wx:else class="empty-cart">
-    <text class="empty-text">购物车还是空的</text>
-    <view class="empty-btn" bindtap="onGoShopping">去逛逛</view>
-  </view>
+    <view wx:else class="empty-cart">
+      <text class="empty-text">购物车还是空的</text>
+      <view class="empty-btn" bindtap="onGoShopping">去逛逛</view>
+    </view>
+  </scroll-view>
 
   <view wx:if="{{cartList.length > 0}}" class="cart-footer">
     <view class="total-info">

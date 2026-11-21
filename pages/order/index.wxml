@@ -40,7 +40,7 @@
 
         <view wx:if="{{item.status <= 4}}" class="order-actions" catchtap="noop">
           <view wx:if="{{item.status === 1}}" class="action-btn primary" catchtap="onPayTap" data-id="{{item.id}}">去支付</view>
-          <view wx:if="{{item.status === 2 || (item.status >= 3 && item.status <= 4)}}" class="action-btn" catchtap="onReminderTap" data-id="{{item.id}}">催单</view>
+          <view wx:if="{{item.status >= 2 && item.status <= 4}}" class="action-btn {{item.reminded ? 'disabled' : ''}}" catchtap="onReminderTap" data-id="{{item.id}}">{{item.reminded ? '已催单' : '催单'}}</view>
           <view wx:if="{{item.status === 1 || item.status === 2}}" class="action-btn" catchtap="onCancelTap" data-id="{{item.id}}">取消订单</view>
         </view>
 
@@ -60,4 +60,10 @@
       </view>
     </block>
   </scroll-view>
+
+  <cancel-reason-popup
+    visible="{{cancelVisible}}"
+    bind:close="onCancelClose"
+    bind:confirm="onCancelConfirm"
+  ></cancel-reason-popup>
 </view>

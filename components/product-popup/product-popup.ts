@@ -1,5 +1,6 @@
-import { request } from "../../utils/request";
 import { normalizeImageUrl } from "../../utils/image";
+import { addToCartTimes } from "../../utils/cart";
+import { startLoading, endLoading } from "../../utils/request";
 import { buildFlavorGroups, collectFlavorPayload } from "../../utils/flavor";
 import type { FlavorGroup } from "../../utils/flavor";
 import type { DishVO } from "../../types/dish";
@@ -30,7 +31,9 @@ Component({
       dish: DishVO | null,
     ) {
       if (!visible || !dish) {
-        this.setData({ quantity: 1 });
+        // adding 在成功加购后会保持 true 直到弹窗关闭，这里必须复位，
+        // 否则下次打开弹窗时「加入购物车」会一直被防重入拦掉
+        this.setData({ quantity: 1, adding: false });
         return;
       }
 
@@ -42,6 +45,7 @@ Component({
         flavorGroups: buildFlavorGroups(dish.flavors),
         quantity: 1,
         totalText: Number(dish.price).toFixed(2),
+        adding: false,
       });
     },
   },
@@ -118,33 +122,40 @@ Component({
       }
 
       this.setData({ adding: true });
-      wx.showLoading({ title: "加入中...", mask: true });
+      startLoading("加入中...");
 
-      try {
-        for (let i = 0; i < this.data.quantity; i++) {
-          await request({
-            url: "/user/shoppingCart/add",
-            method: "POST",
-            data:
-              payload.flavorId.length > 0
-                ? {
-                    dishId: dish.id,
-                    flavorId: payload.flavorId,
-                    flavorVal: payload.flavorVal,
-                  }
-                : { dishId: dish.id },
-          });
-        }
-        wx.hideLoading();
-        wx.showToast({ title: "已加入购物车", icon: "none" });
-        this.triggerEvent("added");
-      } catch (err) {
-        wx.hideLoading();
-        console.error("加入购物车失败:", err);
-        wx.showToast({ title: "加入购物车失败", icon: "none" });
-      } finally {
+      const data =
+        payload.flavorId.length > 0
+          ? {
+              dishId: dish.id,
+              flavorId: payload.flavorId,
+              flavorVal: payload.flavorVal,
+            }
+          : { dishId: dish.id };
+
+      const result = await addToCartTimes(data, this.data.quantity);
+
+      endLoading();
+
+      // 一份都没成功：保持弹窗打开，让用户可以重试
+      if (result.successCount === 0) {
         this.setData({ adding: false });
+        wx.showToast({ title: "加入购物车失败", icon: "none" });
+        return;
       }
+
+      // 部分成功：前几份已入库，必须给出准确份数并关闭弹窗，否则再点会重复加购
+      if (result.failedCount > 0) {
+        wx.showToast({
+          title: `已加入 ${result.successCount} 份，其余失败`,
+          icon: "none",
+        });
+      } else {
+        wx.showToast({ title: "已加入购物车", icon: "none" });
+      }
+
+      // adding 保持为 true，由调用方关闭弹窗，避免关闭动画期间再次点击
+      this.triggerEvent("added");
     },
   },
 });

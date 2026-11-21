@@ -1,7 +1,42 @@
+page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .container {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-bg-page, #f0f7f4);
-  padding-bottom: 150rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.scroll-area {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.load-failed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.load-failed-text {
+  font-size: 30rpx;
+  color: var(--color-text-secondary, #6b8f71);
+  margin-bottom: 32rpx;
+}
+.load-failed-btn {
+  padding: 20rpx 48rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  background-color: var(--color-primary, #4caf50);
+  border-radius: 40rpx;
 }
 .avatar-section {
   display: flex;
@@ -67,11 +102,27 @@
   border: none;
   outline: none;
 }
+/* radio-group 与 label 在 Skyline 下默认按块级排列，会竖着堆叠，需显式指定横向弹性布局 */
+.radio-group {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.radio-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 60rpx;
+  font-size: 28rpx;
+  color: var(--color-text-primary, #1a3a2a);
+}
+.radio-icon {
+  margin-right: 12rpx;
+}
 .save-btn {
-  position: fixed;
-  bottom: 16rpx;
-  left: 16rpx;
-  right: 16rpx;
+  flex: none;
+  margin: 0 16rpx 16rpx;
   height: 92rpx;
   line-height: 92rpx;
   background-color: var(--color-primary, #4caf50);

@@ -1,25 +1,31 @@
 <navigation-bar title="地址管理" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
-  <view wx:for="{{addressList}}" wx:key="id" class="address-card" bindtap="onSelect" data-address="{{item}}">
-    <view class="address-info">
-      <view class="header">
-        <text class="consignee">{{item.consignee}}</text>
-        <text class="phone">{{item.phone}}</text>
-        <text class="default-tag" wx:if="{{item.isDefault === 1}}">默认</text>
+  <scroll-view class="scroll-area" scroll-y enhanced bounces>
+    <view wx:for="{{addressList}}" wx:key="id" class="address-card" bindtap="onSelect" data-address="{{item}}">
+      <view class="address-info">
+        <view class="header">
+          <text class="consignee">{{item.consignee}}</text>
+          <text class="phone">{{item.phone}}</text>
+          <text class="default-tag" wx:if="{{item.isDefault === 1}}">默认</text>
+        </view>
+        <text class="detail">{{item.provinceName}}{{item.cityName}}{{item.districtName}}{{item.detail}}</text>
       </view>
-      <text class="detail">{{item.provinceName}}{{item.cityName}}{{item.districtName}}{{item.detail}}</text>
-    </view>
-    
-    <view class="actions" catchtap>
-      <text bindtap="onSetDefault" data-id="{{item.id}}" wx:if="{{item.isDefault !== 1}}">设为默认</text>
-      <text bindtap="onTapEdit" data-id="{{item.id}}">编辑</text>
-      <text class="delete" bindtap="onDelete" data-id="{{item.id}}">删除</text>
-    </view>
-  </view>
 
-  <view wx:if="{{addressList.length === 0}}" class="empty">
-    <text>暂无收货地址</text>
-  </view>
+      <view class="actions" catchtap>
+        <text bindtap="onSetDefault" data-id="{{item.id}}" wx:if="{{item.isDefault !== 1}}">设为默认</text>
+        <text bindtap="onTapEdit" data-id="{{item.id}}">编辑</text>
+        <text class="delete" bindtap="onDelete" data-id="{{item.id}}">删除</text>
+      </view>
+    </view>
+
+    <view wx:if="{{loadFailed}}" class="empty state-retry" bindtap="onRetryLoad">
+      <text>加载失败，点击重试</text>
+    </view>
+
+    <view wx:elif="{{addressList.length === 0}}" class="empty">
+      <text>暂无收货地址</text>
+    </view>
+  </scroll-view>
 
   <view class="add-btn" bindtap="onTapAdd">+ 新增地址</view>
 </view>

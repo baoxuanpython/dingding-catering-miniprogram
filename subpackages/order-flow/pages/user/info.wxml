@@ -1,7 +1,13 @@
 <navigation-bar title="个人信息" color="#1a3a2a" background="#FFF"></navigation-bar>
 <view class="container">
+  <view wx:if="{{loadFailed}}" class="load-failed">
+    <text class="load-failed-text">资料加载失败</text>
+    <view class="load-failed-btn" bindtap="onRetryLoad">重新加载</view>
+  </view>
+
+  <scroll-view wx:else class="scroll-area" scroll-y enhanced bounces>
   <view class="avatar-section">
-    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" disabled="{{uploading}}">
       <image 
         wx:if="{{form.avatar}}" 
         src="{{form.avatar}}" 
@@ -9,7 +15,7 @@
         class="avatar"
       ></image>
       <view wx:else class="avatar placeholder">
-        <text>点击设置头像</text>
+        <text>{{uploading ? '上传中...' : '点击设置头像'}}</text>
       </view>
     </button>
   </view>
@@ -41,9 +47,9 @@
 
     <view class="form-item">
       <text class="label">性别</text>
-      <radio-group bindchange="onRadioChange">
-        <label><radio value="男" checked="{{form.sex === '男'}}" /> 男</label>
-        <label><radio value="女" checked="{{form.sex === '女'}}" /> 女</label>
+      <radio-group class="radio-group" bindchange="onRadioChange" >
+        <label class="radio-item"><radio class="radio-icon" value="男" checked="{{form.sex === '男'}}" /> 男</label>
+        <label class="radio-item"><radio class="radio-icon" value="女" checked="{{form.sex === '女'}}" /> 女</label>
       </radio-group>
     </view>
 
@@ -59,6 +65,7 @@
       />
     </view>
   </view>
+  </scroll-view>
 
-  <button class="save-btn" bindtap="onSave">保存</button>
+  <button wx:if="{{!loadFailed}}" class="save-btn" bindtap="onSave">保存</button>
 </view>

@@ -32,7 +32,6 @@ App({
     cartList: [] as ShoppingCart[],
     cartTotal: 0 as number,
     cartCount: 0 as number,
-    loginReady: false as boolean,
     // 订单数据是否已变更：详情页/结算页改动后置真，订单列表按此决定是否重置
     orderListDirty: false as boolean,
     // 订单列表需要强制切换到的状态（0 表示不强制）；tabBar 页实例常驻，switchTab 无法带参
@@ -44,6 +43,10 @@ App({
   initLoginPromise: null as Promise<void> | null,
 
   redirectingToLogin: false as boolean,
+
+  // 登录世代号：每次退出登录递增。在飞的 wxLogin 返回后比对它，
+  // 若已变化说明期间用户已退出，必须丢弃结果，否则会把刚清掉的 token 又写回去
+  authEpoch: 0 as number,
 
   // 页面统一通过该方法等待"本次登录周期"完成
   waitForLogin(): Promise<void> {
@@ -85,7 +88,7 @@ App({
       return this.initLoginPromise;
     }
 
-    this.initLoginPromise = (async () => {
+    const pending = (async () => {
       try {
         // 用户主动退出过：不做静默登录，直接放行等待者，由页面守卫统一跳登录页
         if (this.isLoggedOut()) {
@@ -101,7 +104,6 @@ App({
 
         // 有 token 才静默校验；校验失败且为鉴权错误时降级为静默重登
         await this.checkLoginStatus();
-        this.globalData.loginReady = true;
         openLoginGate();
       } catch (err) {
         console.error("登录初始化失败:", err);
@@ -119,12 +121,22 @@ App({
             }
           },
         });
-      } finally {
-        this.initLoginPromise = null;
       }
     })();
 
-    return this.initLoginPromise;
+    this.initLoginPromise = pending;
+
+    // 上面两个「无 await」分支会同步跑完，若在内部 finally 里清空，会被随后的
+    // 赋值覆盖，导致 initLoginPromise 永远停留在一个已完成的 Promise 上。
+    // 因此把清空放在赋值之后，并加同一性判断避免清掉更新的一次初始化。
+    const clear = () => {
+      if (this.initLoginPromise === pending) {
+        this.initLoginPromise = null;
+      }
+    };
+    pending.then(clear, clear);
+
+    return pending;
   },
 
   // 登录页主动登录：成功后放行门闩并清除"已退出"标记
@@ -132,12 +144,14 @@ App({
     resetLoginGate();
     await this.wxLogin();
     wx.removeStorageSync("loggedOut");
-    this.globalData.loginReady = true;
     openLoginGate();
   },
 
   // 退出登录：只清本地状态，服务端 openid 未变，无法真正注销
   logout() {
+    // 先递增世代号：让所有在飞的登录/重登请求作废，避免它们稍后把 token 写回
+    this.authEpoch += 1;
+
     wx.removeStorageSync("token");
     wx.removeStorageSync("userInfo");
     wx.setStorageSync("loggedOut", true);
@@ -147,8 +161,17 @@ App({
     this.globalData.cartList = [];
     this.globalData.cartCount = 0;
     this.globalData.cartTotal = 0;
-    this.globalData.loginReady = false;
+    // 订单列表的跨页标记属于上一个账号，必须清掉，否则换账号后会被强制切到旧 tab
+    this.globalData.orderListDirty = false;
+    this.globalData.orderListStatus = 0;
     this.reloginPromise = null;
+    this.initLoginPromise = null;
+
+    // 重置门闩：旧的登录周期已结束，等待者应等下一次登录而不是立即放行
+    resetLoginGate();
+
+    // cartCount 已清零，角标必须同步移除，否则会一直显示上一个账号的数量
+    this.syncCartBadge();
 
     wx.reLaunch({ url: "/pages/login/index" });
   },
@@ -183,6 +206,8 @@ App({
   },
 
   async wxLogin() {
+    const epoch = this.authEpoch;
+
     const loginRes =
       await new Promise<WechatMiniprogram.LoginSuccessCallbackResult>(
         (resolve, reject) => {
@@ -200,6 +225,12 @@ App({
       skipAuthRetry: true,
     });
 
+    // 请求期间用户已退出登录：这次登录结果必须丢弃，
+    // 否则会把 logout() 刚清掉的 token 重新写回本地，用户又被登回去
+    if (epoch !== this.authEpoch) {
+      throw new ApiError(1001, "已退出登录");
+    }
+
     this.globalData.token = res.data.token;
     this.globalData.userInfo = {
       id: res.data.id,
@@ -216,11 +247,13 @@ App({
     wx.setStorageSync("userInfo", this.globalData.userInfo);
   },
 
-  async fetchUserInfo() {
+  // skipAuthRetry 默认 true：checkLoginStatus/relogin 内部调用时不能再触发重登，
+  // 否则 401 会递归重登形成死循环。页面主动刷新资料时应传 false，让过期 token 自动重登。
+  async fetchUserInfo(skipAuthRetry = true) {
     const res = await request<User>({
       url: "/user/user/info",
       method: "GET",
-      skipAuthRetry: true,
+      skipAuthRetry,
     });
 
     this.globalData.userInfo = res.data;
@@ -246,7 +279,10 @@ App({
         await this.fetchUserInfo();
       } catch (err) {
         console.error("自动重登失败:", err);
-        wx.showToast({ title: "登录已过期，请重新进入", icon: "none" });
+        // 用户已主动退出时，失败是预期结果，再弹「登录已过期」只会造成困扰
+        if (!this.isLoggedOut()) {
+          wx.showToast({ title: "登录已过期，请重新进入", icon: "none" });
+        }
         throw err;
       } finally {
         this.reloginPromise = null;
